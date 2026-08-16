@@ -1,3 +1,6 @@
+import { useState } from 'react'
+import './index.css'
+
 const games = [
   { id:'roulette', num:'01', title:'الروليت', desc:'اختيار، حظ، وقرارات مباشرة', icon:'◉' },
   { id:'countries', num:'02', title:'حرب الدول', desc:'أعلام، استراتيجية، وإقصاءات', icon:'⚑' },
@@ -7,7 +10,124 @@ const games = [
   { id:'fakkerha', num:'06', title:'فكّرها', desc:'فئات متنوعة وتحديات معلومات', icon:'✦' },
 ]
 
+function RouletteSetup({ onBack }) {
+  const [mode, setMode] = useState('normal')
+  const [names, setNames] = useState('')
+
+  const players = names
+    .split('\n')
+    .map(name => name.trim())
+    .filter(Boolean)
+
+  return (
+    <div className="game-screen">
+      <header className="game-header">
+        <button className="back-btn" onClick={onBack}>رجوع</button>
+
+        <div className="game-title-box">
+          <small>MASHHOOR GAMES</small>
+          <h2>الروليت</h2>
+        </div>
+
+        <div className="game-header-space" />
+      </header>
+
+      <main className="setup-layout">
+        <aside className="setup-sidebar">
+          <div className="setup-panel">
+            <span className="setup-label">اللاعبون</span>
+            <h3>جهّز الأسماء</h3>
+
+            <textarea
+              value={names}
+              onChange={(e) => setNames(e.target.value)}
+              placeholder={'محمد\nسعود\nفارس'}
+            />
+
+            <div className="players-count">
+              <span>عدد اللاعبين</span>
+              <b>{players.length}</b>
+            </div>
+
+            <div className="players-preview">
+              {players.length === 0 ? (
+                <p>الأسماء تظهر هنا قبل بدء اللعبة</p>
+              ) : (
+                players.map((player, index) => (
+                  <div className="player-row" key={`${player}-${index}`}>
+                    <span>{index + 1}</span>
+                    <b>{player}</b>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        </aside>
+
+        <section className="setup-main">
+          <div className="setup-kicker">إعداد الجولة</div>
+
+          <h1>اختر طريقة اللعب</h1>
+
+          <p className="setup-description">
+            جهّز اللاعبين أولًا، وبعدها اختر طور الروليت المناسب للبث.
+          </p>
+
+          <div className="mode-grid">
+            <button
+              className={`mode-card ${mode === 'normal' ? 'active' : ''}`}
+              onClick={() => setMode('normal')}
+            >
+              <span className="mode-icon">◉</span>
+              <div>
+                <b>عادي</b>
+                <small>كل لاعب يلعب لنفسه</small>
+              </div>
+            </button>
+
+            <button
+              className={`mode-card ${mode === 'teams' ? 'active' : ''}`}
+              onClick={() => setMode('teams')}
+            >
+              <span className="mode-icon">◆</span>
+              <div>
+                <b>فرق</b>
+                <small>تقسيم اللاعبين إلى فريقين</small>
+              </div>
+            </button>
+          </div>
+
+          <div className="selected-mode">
+            <span>الطور المختار</span>
+            <b>{mode === 'normal' ? 'الروليت العادي' : 'روليت الفرق'}</b>
+          </div>
+
+          <button
+            className="big-start-btn"
+            disabled={players.length < 2}
+          >
+            ابدأ اللعبة
+            <span>←</span>
+          </button>
+
+          {players.length < 2 && (
+            <small className="start-note">
+              أضف لاعبين اثنين على الأقل لبدء الجولة
+            </small>
+          )}
+        </section>
+      </main>
+    </div>
+  )
+}
+
 export default function App() {
+  const [activeGame, setActiveGame] = useState(null)
+
+  if (activeGame === 'roulette') {
+    return <RouletteSetup onBack={() => setActiveGame(null)} />
+  }
+
   return (
     <div className="site">
       <div className="grid-bg" />
@@ -124,7 +244,7 @@ export default function App() {
                   <p>{game.desc}</p>
                 </div>
 
-                <button>
+                <button onClick={() => setActiveGame(game.id)}>
                   دخول اللعبة
                   <span>←</span>
                 </button>

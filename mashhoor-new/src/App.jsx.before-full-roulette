@@ -19,7 +19,7 @@ function RouletteSetup({ onBack }) {
   const players = names
     .split('\n')
     .map(name => name.trim())
-    .filter(Boolean).slice(0, 30)
+    .filter(Boolean)
 
   if (started) {
     return (

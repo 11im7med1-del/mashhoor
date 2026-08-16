@@ -1,6 +1,5 @@
 import { useState } from 'react'
 import './index.css'
-import RoulettePlay from './games/roulette/RoulettePlay'
 
 const games = [
   { id:'roulette', num:'01', title:'الروليت', desc:'اختيار، حظ، وقرارات مباشرة', icon:'◉' },
@@ -14,22 +13,11 @@ const games = [
 function RouletteSetup({ onBack }) {
   const [mode, setMode] = useState('normal')
   const [names, setNames] = useState('')
-  const [started, setStarted] = useState(false)
 
   const players = names
     .split('\n')
     .map(name => name.trim())
     .filter(Boolean)
-
-  if (started) {
-    return (
-      <RoulettePlay
-        players={players}
-        mode={mode}
-        onBack={() => setStarted(false)}
-      />
-    )
-  }
 
   return (
     <div className="game-screen">
@@ -117,7 +105,6 @@ function RouletteSetup({ onBack }) {
           <button
             className="big-start-btn"
             disabled={players.length < 2}
-            onClick={() => setStarted(true)}
           >
             ابدأ اللعبة
             <span>←</span>

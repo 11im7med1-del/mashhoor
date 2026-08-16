@@ -8838,7 +8838,7 @@ function GameOverlay({ game, room, onClose, onCreateRoom, onConnect, onToast, })
             game === "roulette" && React.createElement(RouletteGame, { room: room }),
             game === "countries" && React.createElement(CountryWarGame, { room: room }),
             game === "russian" && React.createElement(RussianRouletteGame, { room: room, onCreateRoom: onCreateRoom, onToast: onToast }),
-            game === "fakkerha" && React.createElement(StaticGameFrame, { title: "\u0641\u0643\u0651\u0631\u0647\u0627", src: "/mashhoor-v20/games/fakkerha/index.html" }),
+            game === "fakkerha" && React.createElement(FakkerhaGame, { room: room }),
             game === "codenames" && React.createElement(CodenamesGame, { room: room, onCreateRoom: onCreateRoom, onToast: onToast }),
             game === "letters" && React.createElement(LettersGame, { room: room })),
         roomIsHost && React.createElement("div", { className: surface === "control" ? "" : "host-panel-wrap-hidden" },
@@ -8861,6 +8861,66 @@ function GameOverlay({ game, room, onClose, onCreateRoom, onConnect, onToast, })
                     React.createElement("b", null, index + 1),
                     React.createElement("span", null, rule)))),
                 React.createElement("button", { className: "button primary", onClick: () => setHelpOpen(false) }, "\u0641\u0647\u0645\u062A\u060C \u0627\u0628\u062F\u0623 \u0627\u0644\u0644\u0639\u0628"))))));
+}
+function FakkerhaGame({ room }) {
+    const [phase, setPhase] = useState('setup');
+    const [questions, setQuestions] = useState([]);
+    const [currentQuestion, setCurrentQuestion] = useState(null);
+    const [team1Score, setTeam1Score] = useState(0);
+    const [team2Score, setTeam2Score] = useState(0);
+    const { players: joinedPlayers, isHost, connection } = useRoomSync(room, 'fakkerha', { phase, team1Score, team2Score }, (state) => { });
+    function startGame() {
+        if (!isHost) return;
+        setPhase('play');
+    }
+    function resetGame() {
+        if (!isHost) return;
+        setPhase('setup');
+        setTeam1Score(0);
+        setTeam2Score(0);
+    }
+    if (phase === 'setup' && !isHost) {
+        return React.createElement('section', { className: 'unified-prep fakkerha-prep waiting' },
+            React.createElement('div', { className: 'prep-play' },
+                React.createElement('span', { className: 'prep-kicker' }, 'MASHHOOR · فكّرها'),
+                React.createElement('h1', null, 'فكّرها'),
+                React.createElement('p', null, 'تم دخولك للغرفة. انتظر المضيف حتى يبدأ اللعبة.'),
+                React.createElement('i', { className: connection })));
+    }
+    if (phase === 'setup' && isHost) {
+        return React.createElement('section', { className: 'unified-prep fakkerha-prep' },
+            React.createElement('div', { className: 'prep-play' },
+                React.createElement('span', { className: 'prep-kicker' }, 'MASHHOOR · فكّرها'),
+                React.createElement('h1', null, 'فكّرها'),
+                React.createElement('p', null, 'اختر الفئة والسؤال وتتبع النقاط للفريقين.'),
+                React.createElement('button', { className: 'prep-start fakkerha-start', onClick: startGame }, 'ابدأ اللعبة')),
+            React.createElement('aside', { className: 'prep-settings' },
+                React.createElement('div', { className: 'prep-title' },
+                    React.createElement('b', null, 'اللاعبون والإعدادات'),
+                    React.createElement('span', null, `${joinedPlayers.length} داخل`)),
+                React.createElement('div', { className: 'prep-joined-list' },
+                    joinedPlayers.length ? joinedPlayers.map((pl, i) => React.createElement('div', { key: pl.id || i },
+                        React.createElement('i', null, i + 1),
+                        React.createElement('b', null, pl.name))) : React.createElement('p', null, 'بانتظار دخول اللاعبين...'))));
+    }
+    return React.createElement('section', { className: 'fakkerha-play-shell' },
+        React.createElement('header', { className: 'fakkerha-play-head' },
+            React.createElement('div', null,
+                React.createElement('small', null, 'MASHHOOR · فكّرها'),
+                React.createElement('h1', null, 'فكّرها'),
+                React.createElement('p', null, 'أسئلة وتحديات سريعة للفريقين')),
+            React.createElement('div', null,
+                React.createElement('span', { className: `room-status ${connection}` }, connection === 'live' ? 'الغرفة متصلة' : 'وضع محلي'),
+                isHost && React.createElement('button', { onClick: resetGame }, 'إعادة اللعبة'))),
+        React.createElement('div', { className: 'fakkerha-scores' },
+            React.createElement('div', { className: 'team-score' },
+                React.createElement('b', null, team1Score),
+                React.createElement('span', null, 'الفريق الأول')),
+            React.createElement('div', { className: 'team-score' },
+                React.createElement('b', null, team2Score),
+                React.createElement('span', null, 'الفريق الثاني'))),
+        React.createElement('div', { className: 'fakkerha-content' },
+            React.createElement('p', null, 'تم تطوير لعبة فكّرها. سيتم إضافة الأسئلة والإعدادات.')));
 }
 function StaticGameFrame({ title, src }) {
     return (React.createElement("div", { className: "static-game-frame-wrap" },

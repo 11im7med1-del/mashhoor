@@ -1,0 +1,12 @@
+{
+  "name": "mashhoor-worker",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy"
+  },
+  "devDependencies": {
+    "wrangler": "^4.123.0"
+  }
+}

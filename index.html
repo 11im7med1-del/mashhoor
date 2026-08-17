@@ -27,87 +27,10 @@
 .game-help-description { color: #89938b; font-size: 10px; line-height: 1.8; margin: 0 auto 16px; max-width: 540px; }
 
 /* Countries war v2 */
-.country-setup { align-items: center; background: radial-gradient(circle at 50% 35%,rgba(36,209,255,.13),transparent 35%),#060908; display: flex; justify-content: center; min-height: calc(100vh - 78px); padding: 20px; }.country-setup-wrapper { display: grid; gap: 30px; grid-template-columns: 1fr 280px; max-width: 1200px; width: 100%; align-items: center; }.country-setup-center { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 20px; }.country-setup-center .country-setup-icon { font-size: 64px; margin-bottom: 10px; }.country-setup-center h2 { font-size: 36px; margin: 0; color: var(--text); }.country-setup-center p { color: #7c8982; font-size: 11px; margin: 0; text-align: center; }.country-setup-center .setup-count { justify-content: center; margin: 15px 0; gap: 12px; }.country-setup-center .setup-count b { font-size: 28px; color: #24d1ff; }.country-setup-center .main-actions { display: flex; flex-direction: column; gap: 10px; margin-top: 15px; width: 100%; max-width: 300px; }.country-setup-center .button { width: 100%; }.country-setup-right { background: linear-gradient(145deg,#11191a,#080b0b); border: 1px solid #26363a; border-radius: 18px; padding: 24px; box-shadow: 0 25px 80px #000; }.country-setup-right label { display: block; color: #a9b2aa; font-size: 10px; font-weight: 800; margin-bottom: 6px; margin-top: 12px; }.country-setup-right label:first-child { margin-top: 0; }.country-setup-right textarea { background: #050706; border: 1px solid #2c3832; border-radius: 10px; color: #fff; font: inherit; line-height: 1.6; min-height: 180px; padding: 12px; resize: vertical; width: 100%; font-size: 11px; }.country-setup-right textarea:focus { border-color: #a7ff25; }.country-setup-right .setup-info { background: #080b09; border: 1px solid #283029; border-radius: 9px; padding: 10px; margin-top: 12px; text-align: center; }.country-setup-right .setup-info small { color: #707a72; font-size: 7px; display: block; }.country-setup-right .setup-info b { color: var(--lime); font-size: 16px; display: block; margin-top: 3px; }
+.country-setup { align-items: center; background: radial-gradient(circle at 50% 35%,rgba(36,209,255,.13),transparent 35%),#060908; display: flex; justify-content: center; min-height: calc(100vh - 72px); padding: 25px; }.country-setup-card { background: linear-gradient(145deg,#11191a,#080b0b); border: 1px solid #26363a; border-radius: 22px; box-shadow: 0 30px 90px #000; max-width: 520px; padding: 32px; text-align: center; width: 100%; }.country-setup-icon { display: block; font-size: 64px; }.country-setup-card > small { color: #24d1ff; display: block; font-size: 9px; letter-spacing: 3px; margin-top: 10px; }.country-setup-card h2 { font-size: 36px; margin: 6px 0; }.country-setup-card p { color: #7c8982; font-size: 10px; }.country-setup-card textarea { background: #050706; border: 1px solid #2c3832; border-radius: 12px; color: #fff; font: inherit; line-height: 1.8; margin: 14px 0; min-height: 170px; padding: 14px; resize: vertical; width: 100%; }.setup-count { align-items: center; display: flex; gap: 8px; justify-content: center; margin-bottom: 14px; }.setup-count b { color: #24d1ff; font-size: 21px; }.setup-count span { color: #78837c; font-size: 8px; }.country-setup-card .button + .button { margin-top: 8px; }
 .country-mode-tabs { background: #070a08; border: 1px solid #252d26; border-radius: 10px; display: grid; gap: 4px; grid-template-columns: 1fr 1fr; margin-bottom: 12px; padding: 4px; }.country-mode-tabs button { background: transparent; border: 0; border-radius: 7px; color: #78837b; font-size: 8px; padding: 10px 4px; }.country-mode-tabs button.active { background: #168aa3; color: #fff; }.country-tool { background: #0b0f0c; border: 1px solid #283129; border-radius: 8px; color: #a8b0aa; font-size: 8px; margin-top: 7px; padding: 10px; width: 100%; }.country-tool:disabled { opacity: .35; }.country-ranking > div.out { filter: grayscale(1); opacity: .35; }
 .countries-war-v2 .country-card { appearance: none; color: #fff; cursor: pointer; text-align: right; }.countries-war-v2 .country-card:not(:disabled):hover { border-color: var(--country); box-shadow: 0 0 24px color-mix(in srgb,var(--country) 16%,transparent); transform: translateY(-2px); }.countries-war-v2 .country-card:disabled { cursor: default; }.country-state { color: var(--country); font-size: 8px; margin-inline-start: auto; }.wheel-action { min-width: 190px; }
-.country-result-overlay { align-items: center; backdrop-filter: blur(8px); background: rgba(2,4,3,.72); display: flex; inset: 0; justify-content: center; padding: 20px; position: fixed; z-index: 80; }.country-result-card { animation: resultPop .35s ease; background: radial-gradient(circle at 50% 20%,rgba(255,75,74,.2),transparent 35%),linear-gradient(145deg,#171210,#070908); border: 1px solid #6b3535; border-radius: 22px; box-shadow: 0 30px 100px #000; max-width: 430px; padding: 30px; text-align: center; width: 100%; }.country-result-card > span { font-size: 58px; }.country-result-card > small { color: #ff7d75; display: block; font-size: 9px; letter-spacing: 2px; }.country-result-flag { font-size: 73px; margin: 8px 0; }.country-result-card h2 { font-size: 38px; margin: 0; font-weight: 700; }.country-result-card p { color: #929d95; margin: 8px 0 20px; font-size: 11px; }.country-result-card.winner { background: radial-gradient(circle at 50% 20%,rgba(167,255,37,.2),transparent 37%),linear-gradient(145deg,#11170d,#070908); border-color: #668f2c; }.country-result-card.winner > small { color: var(--lime); }
-
-.country-select-modal {
-  align-items: center;
-  backdrop-filter: blur(12px);
-  background: rgba(5, 7, 6, 0.92);
-  display: flex;
-  flex-direction: column;
-  inset: 0;
-  justify-content: center;
-  padding: 30px 20px;
-  position: fixed;
-  z-index: 100;
-}
-
-.country-select-card {
-  animation: resultPop 0.35s ease;
-  background: linear-gradient(145deg, #11191a, #080b0b);
-  border: 1px solid #26363a;
-  border-radius: 22px;
-  box-shadow: 0 40px 120px #000;
-  max-width: 600px;
-  padding: 40px;
-  text-align: center;
-  width: 100%;
-}
-
-.country-select-card h2 {
-  font-size: 42px;
-  margin: 0 0 20px;
-  color: var(--text);
-  font-weight: 700;
-}
-
-.country-select-card .select-subtitle {
-  color: #8a938c;
-  font-size: 12px;
-  margin-bottom: 25px;
-}
-
-.country-flag-grid {
-  display: grid;
-  gap: 10px;
-  grid-template-columns: repeat(4, 1fr);
-  margin: 20px 0;
-}
-
-.country-flag-btn {
-  appearance: none;
-  background: #0b0f0c;
-  border: 2px solid #232b24;
-  border-radius: 14px;
-  color: var(--text);
-  cursor: pointer;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  min-height: 100px;
-  padding: 12px;
-  transition: all 0.2s;
-}
-
-.country-flag-btn:hover {
-  background: #0f1410;
-  border-color: #24d1ff;
-  transform: translateY(-3px);
-}
-
-.country-flag-btn span {
-  font-size: 48px;
-  line-height: 1;
-}
-
-.country-flag-btn b {
-  font-size: 10px;
-  font-weight: 600;
-  color: #a8b0aa;
-}
+.country-result-overlay { align-items: center; backdrop-filter: blur(8px); background: rgba(2,4,3,.72); display: flex; inset: 0; justify-content: center; padding: 20px; position: fixed; z-index: 80; }.country-result-card { animation: resultPop .35s ease; background: radial-gradient(circle at 50% 20%,rgba(255,75,74,.2),transparent 35%),linear-gradient(145deg,#171210,#070908); border: 1px solid #6b3535; border-radius: 22px; box-shadow: 0 30px 100px #000; max-width: 430px; padding: 30px; text-align: center; width: 100%; }.country-result-card > span { font-size: 58px; }.country-result-card > small { color: #ff7d75; display: block; font-size: 9px; letter-spacing: 2px; }.country-result-flag { font-size: 73px; margin: 8px 0; }.country-result-card h2 { font-size: 33px; margin: 0; }.country-result-card p { color: #929d95; margin: 5px 0 20px; }.country-result-card.winner { background: radial-gradient(circle at 50% 20%,rgba(167,255,37,.2),transparent 37%),linear-gradient(145deg,#11170d,#070908); border-color: #668f2c; }.country-result-card.winner > small { color: var(--lime); }
 
 /* Five color levels */
 .level-ladder { display: grid; gap: 6px; margin-top: 16px; }.level-ladder > div { align-items: center; background: #080b09; border: 1px solid #202721; border-radius: 8px; display: grid; gap: 8px; grid-template-columns: 25px 1fr; padding: 8px; }.level-ladder > div > span { align-items: center; background: #171d18; border-radius: 50%; color: #6f7971; display: flex; font-size: 8px; height: 25px; justify-content: center; }.level-ladder p,.level-ladder b,.level-ladder small { display: block; margin: 0; }.level-ladder b { font-size: 8px; }.level-ladder small { color: #667068; font-size: 6px; margin-top: 3px; }.level-ladder > div.active { border-color: #ff9e2d; }.level-ladder > div.active > span { background: #ff9e2d; color: #111; }.level-ladder > div.done > span { background: rgba(167,255,37,.15); color: var(--lime); }
@@ -1260,24 +1183,8 @@ footer > div:last-child a {
   padding: 16px;
 }
 
-.game-layout {
-  display: grid;
-  gap: 14px;
-  grid-template-columns: 270px minmax(0, 1fr) 250px;
-  margin: 0 auto;
-  max-width: 1600px;
-  min-height: calc(100vh - 110px);
-}
-
-.countries-game {
-  display: grid;
-  gap: 14px;
-  grid-template-columns: 320px 1fr 260px;
-  margin: 0 auto;
-  max-width: 1400px;
-  min-height: calc(100vh - 110px);
-}
-
+.game-layout,
+.countries-game,
 .personas-game,
 .colors-game,
 .draw-game {
@@ -1796,10 +1703,6 @@ footer > div:last-child a {
 }
 
 /* Countries */
-.country-side-panel {
-  order: 3;
-}
-
 .country-side-panel select {
   font-size: 11px;
   margin-bottom: 9px;
@@ -1807,7 +1710,7 @@ footer > div:last-child a {
 
 .country-ranking {
   display: grid;
-  gap: 6px;
+  gap: 5px;
   margin-top: 14px;
 }
 
@@ -1815,51 +1718,38 @@ footer > div:last-child a {
   align-items: center;
   background: #080b09;
   border: 1px solid #1f2720;
-  border-radius: 8px;
+  border-radius: 7px;
   display: grid;
   font-size: 9px;
-  gap: 8px;
-  grid-template-columns: 28px 1fr auto;
-  padding: 10px;
-  transition: 0.2s;
+  gap: 7px;
+  grid-template-columns: 22px 1fr auto;
+  padding: 9px;
 }
 
-.country-ranking > div:hover {
-  background: #0f1410;
-  border-color: rgba(167, 255, 37, 0.2);
-}
-
-.country-ranking span { color: var(--lime); font-size: 10px; font-weight: 700; }
-.country-ranking i { color: #727c74; font-size: 8px; font-style: normal; }
-.country-ranking b { font-size: 11px; font-weight: 600; }
+.country-ranking span { color: var(--lime); }
+.country-ranking i { color: #727c74; font-size: 7px; font-style: normal; }
 
 .country-arena {
   padding: 20px;
-  order: 2;
-  display: flex;
-  flex-direction: column;
 }
 
 .arena-heading {
   align-items: center;
   display: flex;
-  justify-content: center;
-  flex-direction: column;
-  margin-bottom: 20px;
-  text-align: center;
+  justify-content: space-between;
+  margin-bottom: 17px;
 }
 
-.arena-heading h3 { font-size: 28px; margin: 10px 0 0; font-weight: 700; }
-.arena-heading > div:last-child { background: #080b09; border: 1px solid #283029; border-radius: 10px; padding: 10px 16px; text-align: center; margin-top: 15px; }
+.arena-heading h3 { font-size: 25px; margin: 6px 0 0; }
+.arena-heading > div:last-child { background: #080b09; border: 1px solid #283029; border-radius: 10px; padding: 9px 14px; text-align: center; }
 .arena-heading small, .arena-heading b { display: block; }
-.arena-heading small { color: #707a72; font-size: 8px; font-weight: 600; }
-.arena-heading b { color: var(--lime); font-size: 20px; margin-top: 4px; font-weight: 700; }
+.arena-heading small { color: #707a72; font-size: 7px; }
+.arena-heading b { color: var(--lime); font-size: 19px; margin-top: 3px; }
 
 .country-grid {
   display: grid;
-  gap: 0;
-  grid-template-columns: 1fr;
-  flex: 1;
+  gap: 9px;
+  grid-template-columns: repeat(2, 1fr);
 }
 
 .country-card {
@@ -1869,26 +1759,18 @@ footer > div:last-child a {
   border: 1px solid color-mix(in srgb, var(--country) 25%, #222a23);
   border-radius: 12px;
   display: grid;
-  gap: 12px;
-  grid-template-columns: 52px 1fr auto;
-  min-height: 76px;
-  padding: 14px;
+  gap: 10px;
+  grid-template-columns: 48px 1fr auto;
+  min-height: 88px;
+  padding: 12px;
   position: relative;
-  cursor: pointer;
-  transition: all 0.2s;
 }
 
-.country-card:hover:not(:disabled) {
-  background: linear-gradient(135deg, color-mix(in srgb, var(--country) 12%, #0a0e0b), #0b0e0a);
-  border-color: color-mix(in srgb, var(--country) 45%, #222a23);
-  transform: translateY(-2px);
-}
-
-.country-card.eliminated { filter: grayscale(1); opacity: 0.32; cursor: default; }
-.country-flag { font-size: 40px; }
+.country-card.eliminated { filter: grayscale(1); opacity: 0.32; }
+.country-flag { font-size: 34px; }
 .country-card h4, .country-card p { margin: 0; }
-.country-card h4 { font-size: 14px; font-weight: 700; }
-.country-card p { color: #8a938c; font-size: 9px; margin-top: 4px; max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.country-card h4 { font-size: 13px; }
+.country-card p { color: #6f7971; font-size: 8px; margin-top: 5px; max-width: 130px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .country-lives { bottom: 9px; display: flex; gap: 3px; left: 11px; position: absolute; }
 .country-lives i { color: #303831; font-size: 7px; font-style: normal; }
 .country-lives i.on { color: var(--country); }
@@ -8838,7 +8720,7 @@ function GameOverlay({ game, room, onClose, onCreateRoom, onConnect, onToast, })
             game === "roulette" && React.createElement(RouletteGame, { room: room }),
             game === "countries" && React.createElement(CountryWarGame, { room: room }),
             game === "russian" && React.createElement(RussianRouletteGame, { room: room, onCreateRoom: onCreateRoom, onToast: onToast }),
-            game === "fakkerha" && React.createElement(FakkerhaGame, { room: room }),
+            game === "fakkerha" && React.createElement(StaticGameFrame, { title: "\u0641\u0643\u0651\u0631\u0647\u0627", src: "/mashhoor-v20/games/fakkerha/index.html" }),
             game === "codenames" && React.createElement(CodenamesGame, { room: room, onCreateRoom: onCreateRoom, onToast: onToast }),
             game === "letters" && React.createElement(LettersGame, { room: room })),
         roomIsHost && React.createElement("div", { className: surface === "control" ? "" : "host-panel-wrap-hidden" },
@@ -8861,66 +8743,6 @@ function GameOverlay({ game, room, onClose, onCreateRoom, onConnect, onToast, })
                     React.createElement("b", null, index + 1),
                     React.createElement("span", null, rule)))),
                 React.createElement("button", { className: "button primary", onClick: () => setHelpOpen(false) }, "\u0641\u0647\u0645\u062A\u060C \u0627\u0628\u062F\u0623 \u0627\u0644\u0644\u0639\u0628"))))));
-}
-function FakkerhaGame({ room }) {
-    const [phase, setPhase] = useState('setup');
-    const [questions, setQuestions] = useState([]);
-    const [currentQuestion, setCurrentQuestion] = useState(null);
-    const [team1Score, setTeam1Score] = useState(0);
-    const [team2Score, setTeam2Score] = useState(0);
-    const { players: joinedPlayers, isHost, connection } = useRoomSync(room, 'fakkerha', { phase, team1Score, team2Score }, (state) => { });
-    function startGame() {
-        if (!isHost) return;
-        setPhase('play');
-    }
-    function resetGame() {
-        if (!isHost) return;
-        setPhase('setup');
-        setTeam1Score(0);
-        setTeam2Score(0);
-    }
-    if (phase === 'setup' && !isHost) {
-        return React.createElement('section', { className: 'unified-prep fakkerha-prep waiting' },
-            React.createElement('div', { className: 'prep-play' },
-                React.createElement('span', { className: 'prep-kicker' }, 'MASHHOOR · فكّرها'),
-                React.createElement('h1', null, 'فكّرها'),
-                React.createElement('p', null, 'تم دخولك للغرفة. انتظر المضيف حتى يبدأ اللعبة.'),
-                React.createElement('i', { className: connection })));
-    }
-    if (phase === 'setup' && isHost) {
-        return React.createElement('section', { className: 'unified-prep fakkerha-prep' },
-            React.createElement('div', { className: 'prep-play' },
-                React.createElement('span', { className: 'prep-kicker' }, 'MASHHOOR · فكّرها'),
-                React.createElement('h1', null, 'فكّرها'),
-                React.createElement('p', null, 'اختر الفئة والسؤال وتتبع النقاط للفريقين.'),
-                React.createElement('button', { className: 'prep-start fakkerha-start', onClick: startGame }, 'ابدأ اللعبة')),
-            React.createElement('aside', { className: 'prep-settings' },
-                React.createElement('div', { className: 'prep-title' },
-                    React.createElement('b', null, 'اللاعبون والإعدادات'),
-                    React.createElement('span', null, `${joinedPlayers.length} داخل`)),
-                React.createElement('div', { className: 'prep-joined-list' },
-                    joinedPlayers.length ? joinedPlayers.map((pl, i) => React.createElement('div', { key: pl.id || i },
-                        React.createElement('i', null, i + 1),
-                        React.createElement('b', null, pl.name))) : React.createElement('p', null, 'بانتظار دخول اللاعبين...'))));
-    }
-    return React.createElement('section', { className: 'fakkerha-play-shell' },
-        React.createElement('header', { className: 'fakkerha-play-head' },
-            React.createElement('div', null,
-                React.createElement('small', null, 'MASHHOOR · فكّرها'),
-                React.createElement('h1', null, 'فكّرها'),
-                React.createElement('p', null, 'أسئلة وتحديات سريعة للفريقين')),
-            React.createElement('div', null,
-                React.createElement('span', { className: `room-status ${connection}` }, connection === 'live' ? 'الغرفة متصلة' : 'وضع محلي'),
-                isHost && React.createElement('button', { onClick: resetGame }, 'إعادة اللعبة'))),
-        React.createElement('div', { className: 'fakkerha-scores' },
-            React.createElement('div', { className: 'team-score' },
-                React.createElement('b', null, team1Score),
-                React.createElement('span', null, 'الفريق الأول')),
-            React.createElement('div', { className: 'team-score' },
-                React.createElement('b', null, team2Score),
-                React.createElement('span', null, 'الفريق الثاني'))),
-        React.createElement('div', { className: 'fakkerha-content' },
-            React.createElement('p', null, 'تم تطوير لعبة فكّرها. سيتم إضافة الأسئلة والإعدادات.')));
 }
 function StaticGameFrame({ title, src }) {
     return (React.createElement("div", { className: "static-game-frame-wrap" },
@@ -9465,7 +9287,6 @@ function CountriesGame() {
     const [logs, setLogs] = useState(["اكتب الأسماء ثم وزّع الدول"]);
     const [eliminated, setEliminated] = useState([]);
     const [editing, setEditing] = useState(false);
-    const [showCountrySelectModal, setShowCountrySelectModal] = useState(false);
     const alive = fighters.filter((fighter) => fighter.alive);
     const champion = fighters.length > 1 && alive.length === 1 ? alive[0] : null;
     function parseNames() {
@@ -9539,37 +9360,31 @@ function CountriesGame() {
     });
     if (!fighters.length || editing)
         return (React.createElement("div", { className: "country-setup" },
-            React.createElement("div", { className: "country-setup-wrapper" },
-                React.createElement("div", { className: "country-setup-center" },
-                    React.createElement("span", { className: "country-setup-icon" }, "🌍"),
-                    React.createElement("h2", null, "حرب الدول"),
-                    React.createElement("div", { className: "setup-count" },
-                        React.createElement("b", null, parseNames().length),
-                        React.createElement("span", null, "لاعب من 16 كحد أقصى")),
-                    React.createElement("div", { className: "main-actions" },
-                        React.createElement("button", { className: "button primary wide", disabled: parseNames().length < 2, onClick: startWar }, editing ? "حفظ الأسماء وإعادة التوزيع" : "وزّع الدول وابدأ"),
-                        editing && React.createElement("button", { className: "button ghost wide", onClick: () => setEditing(false) }, "إلغاء"))),
-                React.createElement("div", { className: "country-setup-right" },
-                    React.createElement("label", null, "THE COUNTRIES WAR"),
-                    React.createElement("label", null, "أسماء اللاعبين"),
-                    React.createElement("textarea", { value: namesText, onChange: (event) => setNamesText(event.target.value), placeholder: "محمد\nسعود\nفارس" }),
-                    React.createElement("div", { className: "setup-info" },
-                        React.createElement("small", null, "اكتب اسم كل لاعب في سطر، وسنعطيه دولة عشوائية"),
-                        React.createElement("b", null, parseNames().length))));
+            React.createElement("div", { className: "country-setup-card" },
+                React.createElement("span", { className: "country-setup-icon" }, "\uD83C\uDF0D"),
+                React.createElement("small", null, "THE COUNTRIES WAR"),
+                React.createElement("h2", null, "\u062D\u0631\u0628 \u0627\u0644\u062F\u0648\u0644"),
+                React.createElement("p", null, "\u0627\u0643\u062A\u0628 \u0627\u0633\u0645 \u0643\u0644 \u0644\u0627\u0639\u0628 \u0641\u064A \u0633\u0637\u0631\u060C \u0648\u0633\u0646\u0639\u0637\u064A\u0647 \u062F\u0648\u0644\u0629 \u0639\u0634\u0648\u0627\u0626\u064A\u0629."),
+                React.createElement("textarea", { value: namesText, onChange: (event) => setNamesText(event.target.value), placeholder: "\u0645\u062D\u0645\u062F\\n\u0633\u0639\u0648\u062F\\n\u0641\u0627\u0631\u0633" }),
+                React.createElement("div", { className: "setup-count" },
+                    React.createElement("b", null, parseNames().length),
+                    React.createElement("span", null, "\u0644\u0627\u0639\u0628 \u0645\u0646 16 \u0643\u062D\u062F \u0623\u0642\u0635\u0649")),
+                React.createElement("button", { className: "button primary wide", disabled: parseNames().length < 2, onClick: startWar }, editing ? "حفظ الأسماء وإعادة التوزيع" : "وزّع الدول وابدأ"),
+                editing && React.createElement("button", { className: "button ghost wide", onClick: () => setEditing(false) }, "\u0625\u0644\u063A\u0627\u0621"))));
     return (React.createElement("div", { className: "countries-game countries-war-v2" },
         React.createElement("aside", { className: "country-side-panel" },
             React.createElement("div", { className: "panel-title" },
-                React.createElement("span", null, "إدارة اللاعبين"),
+                React.createElement("span", null, "\u0625\u062F\u0627\u0631\u0629 \u0627\u0644\u0644\u0627\u0639\u0628\u064A\u0646"),
                 React.createElement("b", null,
                     alive.length,
                     "/",
                     fighters.length)),
             React.createElement("div", { className: "country-mode-tabs" },
-                React.createElement("button", { className: mode === "war" ? "active" : "", onClick: () => setMode("war") }, "⚔ حرب الدول"),
-                React.createElement("button", { className: mode === "wheel" ? "active" : "", onClick: () => setMode("wheel") }, "🎲 عجلة الحظ")),
+                React.createElement("button", { className: mode === "war" ? "active" : "", onClick: () => setMode("war") }, "\u2694 \u062D\u0631\u0628 \u0627\u0644\u062F\u0648\u0644"),
+                React.createElement("button", { className: mode === "wheel" ? "active" : "", onClick: () => setMode("wheel") }, "\u2739 \u0639\u062C\u0644\u0629 \u0627\u0644\u062D\u0638")),
             React.createElement(PlayerAdder, { onAdd: addPlayer }),
-            React.createElement("button", { className: "country-tool", onClick: restoreLast, disabled: !eliminated.length }, "↩ إرجاع آخر لاعب"),
-            React.createElement("button", { className: "country-tool", onClick: () => setEditing(true) }, "✏ تعديل الأسماء"),
+            React.createElement("button", { className: "country-tool", onClick: restoreLast, disabled: !eliminated.length }, "\u21A9 \u0625\u0631\u062C\u0627\u0639 \u0622\u062E\u0631 \u0644\u0627\u0639\u0628"),
+            React.createElement("button", { className: "country-tool", onClick: () => setEditing(true) }, "\u270E \u062A\u0639\u062F\u064A\u0644 \u0627\u0644\u0623\u0633\u0645\u0627\u0621"),
             React.createElement("div", { className: "country-ranking" }, fighters.map((fighter, index) => React.createElement("div", { className: !fighter.alive ? "out" : "", key: fighter.id },
                 React.createElement("span", null, index + 1),
                 React.createElement("b", null,
@@ -9583,7 +9398,7 @@ function CountriesGame() {
                     React.createElement("span", { className: "section-kicker" }, mode === "war" ? "اختر دولة لإقصائها" : "العجلة تختار الدولة"),
                     React.createElement("h3", null, champion ? `الفائز: ${champion.player}` : "مين آخر دولة صامدة؟")),
                 React.createElement("div", null,
-                    React.createElement("small", null, "الدول الصامدة"),
+                    React.createElement("small", null, "\u0627\u0644\u062F\u0648\u0644 \u0627\u0644\u0635\u0627\u0645\u062F\u0629"),
                     React.createElement("b", null, alive.length))),
             React.createElement("div", { className: "country-grid" }, fighters.map((fighter) => React.createElement("button", { className: `country-card ${!fighter.alive ? "eliminated" : ""}`, style: { "--country": fighter.color }, disabled: !fighter.alive || mode === "wheel", onClick: () => eliminate(fighter), key: fighter.id },
                 React.createElement("span", { className: "country-flag" }, fighter.flag),
@@ -9592,11 +9407,11 @@ function CountriesGame() {
                     React.createElement("p", null, fighter.player)),
                 React.createElement("b", { className: "country-state" }, fighter.alive ? "صامد" : "خرج")))),
             React.createElement("div", { className: "main-game-actions" },
-                mode === "wheel" && !champion && React.createElement("button", { className: "button primary wheel-action", onClick: spinWheel }, "🎲 لف عجلة الدول"),
-                React.createElement("button", { className: "button ghost", onClick: reset }, "لعبة جديدة"))),
+                mode === "wheel" && !champion && React.createElement("button", { className: "button primary wheel-action", onClick: spinWheel }, "\u2739 \u0644\u0641 \u0639\u062C\u0644\u0629 \u0627\u0644\u062F\u0648\u0644"),
+                React.createElement("button", { className: "button ghost", onClick: reset }, "\u0644\u0639\u0628\u0629 \u062C\u062F\u064A\u062F\u0629"))),
         React.createElement("aside", { className: "log-panel" },
             React.createElement("div", { className: "panel-title" },
-                React.createElement("span", null, "أحداث الحرب"),
+                React.createElement("span", null, "\u0623\u062D\u062F\u0627\u062B \u0627\u0644\u062D\u0631\u0628"),
                 React.createElement("b", null, "LIVE")),
             React.createElement("div", { className: "log-list" }, logs.map((log, index) => React.createElement("p", { key: `${log}-${index}` },
                 React.createElement("span", null, index + 1),
@@ -9608,7 +9423,7 @@ function CountriesGame() {
                 React.createElement("div", { className: "country-result-flag" }, (champion ?? result)?.flag),
                 React.createElement("h2", null, (champion ?? result)?.player),
                 React.createElement("p", null, (champion ?? result)?.name),
-                React.createElement("button", { className: "button primary", onClick: () => champion ? reset() : setResult(null) }, champion ? "حرب جديدة" : "متابعة الحرب")));
+                React.createElement("button", { className: "button primary", onClick: () => champion ? reset() : setResult(null) }, champion ? "حرب جديدة" : "متابعة الحرب")))));
 }
 
 return { Home };

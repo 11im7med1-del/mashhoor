@@ -1,0 +1,1219 @@
+import { useEffect, useMemo, useState } from 'react'
+
+const PLAYER_COLORS = [
+  '#9eff28','#24d1ff','#ffb020','#ff5f75',
+  '#a978ff','#35e0a1','#ff7a2f','#4d8dff',
+  '#e8ff52','#ff5cc8','#72e6ff','#b6ff66',
+  '#ffcc4d','#9b7cff','#45d6b5','#ff8f70',
+  '#39c6ff','#d5ff39','#ff73a8','#7ce3b2',
+  '#ffac45','#758cff','#c67cff','#51e0db',
+  '#ffd75a','#80ff91','#ff7070','#63b8ff',
+  '#d88aff','#a9ff58'
+]
+
+const GULF_LEVANT = [
+  { code:'SA', name:'السعودية', flag:'🇸🇦', sad:true },
+  { code:'AE', name:'الإمارات', flag:'🇦🇪', sad:true },
+  { code:'KW', name:'الكويت', flag:'🇰🇼', sad:true },
+  { code:'QA', name:'قطر', flag:'🇶🇦', sad:true },
+  { code:'BH', name:'البحرين', flag:'🇧🇭', sad:true },
+  { code:'OM', name:'عمان', flag:'🇴🇲', sad:true },
+  { code:'JO', name:'الأردن', flag:'🇯🇴', sad:true },
+  { code:'PS', name:'فلسطين', flag:'🇵🇸', sad:true },
+  { code:'LB', name:'لبنان', flag:'🇱🇧', sad:true },
+  { code:'SY', name:'سوريا', flag:'🇸🇾', sad:true }
+]
+
+const COUNTRY_POOL = [
+  { code:'US', name:'أمريكا', flag:'🇺🇸', special:true },
+  { code:'CA', name:'كندا', flag:'🇨🇦', special:true },
+
+  { code:'EG', name:'مصر', flag:'🇪🇬' },
+  { code:'IQ', name:'العراق', flag:'🇮🇶' },
+  { code:'YE', name:'اليمن', flag:'🇾🇪' },
+  { code:'MA', name:'المغرب', flag:'🇲🇦' },
+  { code:'DZ', name:'الجزائر', flag:'🇩🇿' },
+  { code:'TN', name:'تونس', flag:'🇹🇳' },
+  { code:'LY', name:'ليبيا', flag:'🇱🇾' },
+  { code:'SD', name:'السودان', flag:'🇸🇩' },
+  { code:'MR', name:'موريتانيا', flag:'🇲🇷' },
+  { code:'SO', name:'الصومال', flag:'🇸🇴' },
+  { code:'DJ', name:'جيبوتي', flag:'🇩🇯' },
+  { code:'KM', name:'جزر القمر', flag:'🇰🇲' },
+
+  { code:'GB', name:'بريطانيا', flag:'🇬🇧' },
+  { code:'FR', name:'فرنسا', flag:'🇫🇷' },
+  { code:'DE', name:'ألمانيا', flag:'🇩🇪' },
+  { code:'IT', name:'إيطاليا', flag:'🇮🇹' },
+  { code:'ES', name:'إسبانيا', flag:'🇪🇸' },
+  { code:'PT', name:'البرتغال', flag:'🇵🇹' },
+  { code:'NL', name:'هولندا', flag:'🇳🇱' },
+  { code:'BE', name:'بلجيكا', flag:'🇧🇪' },
+  { code:'CH', name:'سويسرا', flag:'🇨🇭' },
+  { code:'AT', name:'النمسا', flag:'🇦🇹' },
+  { code:'SE', name:'السويد', flag:'🇸🇪' },
+  { code:'NO', name:'النرويج', flag:'🇳🇴' },
+  { code:'DK', name:'الدنمارك', flag:'🇩🇰' },
+  { code:'FI', name:'فنلندا', flag:'🇫🇮' },
+  { code:'IS', name:'آيسلندا', flag:'🇮🇸' },
+  { code:'IE', name:'أيرلندا', flag:'🇮🇪' },
+  { code:'PL', name:'بولندا', flag:'🇵🇱' },
+  { code:'CZ', name:'التشيك', flag:'🇨🇿' },
+  { code:'SK', name:'سلوفاكيا', flag:'🇸🇰' },
+  { code:'HU', name:'المجر', flag:'🇭🇺' },
+  { code:'RO', name:'رومانيا', flag:'🇷🇴' },
+  { code:'BG', name:'بلغاريا', flag:'🇧🇬' },
+  { code:'GR', name:'اليونان', flag:'🇬🇷' },
+  { code:'HR', name:'كرواتيا', flag:'🇭🇷' },
+  { code:'RS', name:'صربيا', flag:'🇷🇸' },
+  { code:'SI', name:'سلوفينيا', flag:'🇸🇮' },
+  { code:'AL', name:'ألبانيا', flag:'🇦🇱' },
+  { code:'BA', name:'البوسنة', flag:'🇧🇦' },
+  { code:'MK', name:'مقدونيا الشمالية', flag:'🇲🇰' },
+  { code:'ME', name:'الجبل الأسود', flag:'🇲🇪' },
+  { code:'TR', name:'تركيا', flag:'🇹🇷' },
+  { code:'UA', name:'أوكرانيا', flag:'🇺🇦' },
+
+  { code:'JP', name:'اليابان', flag:'🇯🇵' },
+  { code:'KR', name:'كوريا الجنوبية', flag:'🇰🇷' },
+  { code:'CN', name:'الصين', flag:'🇨🇳' },
+  { code:'IN', name:'الهند', flag:'🇮🇳' },
+  { code:'PK', name:'باكستان', flag:'🇵🇰' },
+  { code:'BD', name:'بنغلاديش', flag:'🇧🇩' },
+  { code:'LK', name:'سريلانكا', flag:'🇱🇰' },
+  { code:'NP', name:'نيبال', flag:'🇳🇵' },
+  { code:'AF', name:'أفغانستان', flag:'🇦🇫' },
+  { code:'ID', name:'إندونيسيا', flag:'🇮🇩' },
+  { code:'MY', name:'ماليزيا', flag:'🇲🇾' },
+  { code:'SG', name:'سنغافورة', flag:'🇸🇬' },
+  { code:'TH', name:'تايلاند', flag:'🇹🇭' },
+  { code:'PH', name:'الفلبين', flag:'🇵🇭' },
+  { code:'VN', name:'فيتنام', flag:'🇻🇳' },
+  { code:'KH', name:'كمبوديا', flag:'🇰🇭' },
+  { code:'MN', name:'منغوليا', flag:'🇲🇳' },
+  { code:'KZ', name:'كازاخستان', flag:'🇰🇿' },
+  { code:'UZ', name:'أوزبكستان', flag:'🇺🇿' },
+  { code:'AZ', name:'أذربيجان', flag:'🇦🇿' },
+  { code:'GE', name:'جورجيا', flag:'🇬🇪' },
+  { code:'AM', name:'أرمينيا', flag:'🇦🇲' },
+
+  { code:'AU', name:'أستراليا', flag:'🇦🇺' },
+  { code:'NZ', name:'نيوزيلندا', flag:'🇳🇿' },
+
+  { code:'BR', name:'البرازيل', flag:'🇧🇷' },
+  { code:'AR', name:'الأرجنتين', flag:'🇦🇷' },
+  { code:'MX', name:'المكسيك', flag:'🇲🇽' },
+  { code:'CL', name:'تشيلي', flag:'🇨🇱' },
+  { code:'CO', name:'كولومبيا', flag:'🇨🇴' },
+  { code:'PE', name:'بيرو', flag:'🇵🇪' },
+  { code:'UY', name:'الأوروغواي', flag:'🇺🇾' },
+  { code:'PY', name:'باراغواي', flag:'🇵🇾' },
+  { code:'EC', name:'الإكوادور', flag:'🇪🇨' },
+  { code:'BO', name:'بوليفيا', flag:'🇧🇴' },
+  { code:'VE', name:'فنزويلا', flag:'🇻🇪' },
+  { code:'CR', name:'كوستاريكا', flag:'🇨🇷' },
+  { code:'PA', name:'بنما', flag:'🇵🇦' },
+  { code:'CU', name:'كوبا', flag:'🇨🇺' },
+  { code:'JM', name:'جامايكا', flag:'🇯🇲' },
+
+  { code:'ZA', name:'جنوب أفريقيا', flag:'🇿🇦' },
+  { code:'NG', name:'نيجيريا', flag:'🇳🇬' },
+  { code:'GH', name:'غانا', flag:'🇬🇭' },
+  { code:'SN', name:'السنغال', flag:'🇸🇳' },
+  { code:'CM', name:'الكاميرون', flag:'🇨🇲' },
+  { code:'KE', name:'كينيا', flag:'🇰🇪' },
+  { code:'ET', name:'إثيوبيا', flag:'🇪🇹' },
+  { code:'TZ', name:'تنزانيا', flag:'🇹🇿' },
+  { code:'UG', name:'أوغندا', flag:'🇺🇬' },
+  { code:'AO', name:'أنغولا', flag:'🇦🇴' },
+  { code:'ZM', name:'زامبيا', flag:'🇿🇲' },
+  { code:'ZW', name:'زيمبابوي', flag:'🇿🇼' },
+  { code:'ML', name:'مالي', flag:'🇲🇱' },
+  { code:'NE', name:'النيجر', flag:'🇳🇪' }
+]
+
+function shuffle(items) {
+  const copy = [...items]
+
+  for (let i = copy.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1))
+    ;[copy[i], copy[j]] = [copy[j], copy[i]]
+  }
+
+  return copy
+}
+
+function createGamePlayers(names) {
+  const cleanNames = names.slice(0, 30)
+
+  const chosenCountries = []
+
+  // دولتان على الأقل من الخليج / بلاد الشام
+  chosenCountries.push(
+    ...shuffle(GULF_LEVANT).slice(
+      0,
+      Math.min(2, cleanNames.length)
+    )
+  )
+
+  // وجود أمريكا وكندا إذا كان عدد اللاعبين يسمح
+  if (cleanNames.length >= 3) {
+    chosenCountries.push(
+      COUNTRY_POOL.find(country => country.code === 'US')
+    )
+  }
+
+  if (cleanNames.length >= 4) {
+    chosenCountries.push(
+      COUNTRY_POOL.find(country => country.code === 'CA')
+    )
+  }
+
+  const used = new Set(
+    chosenCountries.map(country => country.code)
+  )
+
+  const rest = shuffle([
+    ...GULF_LEVANT,
+    ...COUNTRY_POOL
+  ]).filter(country => !used.has(country.code))
+
+  while (
+    chosenCountries.length < cleanNames.length &&
+    rest.length
+  ) {
+    chosenCountries.push(rest.shift())
+  }
+
+  const assignedCountries =
+    shuffle(chosenCountries.slice(0, cleanNames.length))
+
+  return cleanNames.map((name, index) => ({
+    id:`${index}-${name}`,
+    name,
+    playerNumber:index + 1,
+    countryNumber:index + 1,
+    color:PLAYER_COLORS[index % PLAYER_COLORS.length],
+    country:assignedCountries[index]
+  }))
+}
+
+function normalizeName(value = '') {
+  return String(value).trim().toLowerCase()
+}
+
+function normalizeDigits(value = '') {
+  const arabic = '٠١٢٣٤٥٦٧٨٩'
+
+  return String(value).replace(/[٠-٩]/g, digit =>
+    arabic.indexOf(digit)
+  )
+}
+
+function FlagImage({ country, className = '' }) {
+  if (!country?.code) return null
+
+  return (
+    <img
+      className={className}
+      src={`https://flagcdn.com/w160/${country.code.toLowerCase()}.png`}
+      alt={country.name}
+      draggable="false"
+    />
+  )
+}
+
+export default function CountriesPlay({ players, onBack }) {
+  const [activePlayers, setActivePlayers] =
+    useState(() => createGamePlayers(players))
+
+  const [screen, setScreen] = useState('wheel')
+
+  const [rotation, setRotation] = useState(0)
+  const [spinning, setSpinning] = useState(false)
+
+  const [chooser, setChooser] = useState(null)
+  const [effect, setEffect] = useState(null)
+
+  const champion =
+    activePlayers.length === 1
+      ? activePlayers[0]
+      : null
+
+  const part =
+    activePlayers.length
+      ? 360 / activePlayers.length
+      : 360
+
+  const wheelBackground = useMemo(() => {
+    if (!activePlayers.length) return '#111'
+
+    return `conic-gradient(${activePlayers.map(
+      (player, index) => {
+        const start = index * part
+        const end = (index + 1) * part
+
+        return `${player.color} ${start}deg ${end}deg`
+      }
+    ).join(',')})`
+  }, [activePlayers, part])
+
+  function spinWheel() {
+    if (
+      spinning ||
+      screen !== 'wheel' ||
+      activePlayers.length <= 1
+    ) return
+
+    setChooser(null)
+    setSpinning(true)
+
+    const selectedIndex =
+      Math.floor(Math.random() * activePlayers.length)
+
+    const selected =
+      activePlayers[selectedIndex]
+
+    const center =
+      selectedIndex * part + part / 2
+
+    const current =
+      ((rotation % 360) + 360) % 360
+
+    const destination =
+      (360 - center) % 360
+
+    const correction =
+      (destination - current + 360) % 360
+
+    const next =
+      rotation +
+      360 * (7 + Math.floor(Math.random() * 2)) +
+      correction
+
+    setRotation(next)
+
+    setTimeout(() => {
+      setSpinning(false)
+      setChooser(selected)
+    }, 3900)
+  }
+
+  function chooseCountry(targetPlayer) {
+    if (
+      screen !== 'wheel' ||
+      !chooser ||
+      targetPlayer.id === chooser.id
+    ) return
+
+    let effectType = 'normal'
+
+    if (targetPlayer.country?.sad) {
+      effectType = 'sad'
+    }
+
+    if (
+      targetPlayer.country?.code === 'US' ||
+      targetPlayer.country?.code === 'CA'
+    ) {
+      effectType = 'special'
+    }
+
+    setEffect({
+      type:effectType,
+      player:targetPlayer
+    })
+
+    setScreen('effect')
+
+    setTimeout(() => {
+      setActivePlayers(current =>
+        current.filter(
+          player => player.id !== targetPlayer.id
+        )
+      )
+
+      setChooser(null)
+      setEffect(null)
+      setScreen('wheel')
+    }, 1800)
+  }
+
+  // تجهيز اختيار الرقم من الشات لاحقًا
+  useEffect(() => {
+    function receiveChatMessage(event) {
+      if (
+        screen !== 'wheel' ||
+        !chooser
+      ) return
+
+      const detail = event.detail || {}
+
+      const sender =
+        normalizeName(
+          detail.senderName ??
+          detail.sender ??
+          ''
+        )
+
+      const message =
+        normalizeDigits(
+          detail.message ??
+          detail.text ??
+          ''
+        ).trim()
+
+      if (
+        sender !== normalizeName(chooser.name)
+      ) return
+
+      if (!/^\d+$/.test(message)) return
+
+      const countryNumber = Number(message)
+
+      const targetPlayer =
+        activePlayers.find(
+          player =>
+            player.countryNumber === countryNumber &&
+            player.id !== chooser.id
+        )
+
+      if (targetPlayer) {
+        chooseCountry(targetPlayer)
+      }
+    }
+
+    window.addEventListener(
+      'mashhoor-chat-message',
+      receiveChatMessage
+    )
+
+    window.mashhoorCountriesChat =
+      (senderName, message) => {
+        window.dispatchEvent(
+          new CustomEvent(
+            'mashhoor-chat-message',
+            {
+              detail:{
+                senderName,
+                message
+              }
+            }
+          )
+        )
+      }
+
+    return () => {
+      window.removeEventListener(
+        'mashhoor-chat-message',
+        receiveChatMessage
+      )
+
+      delete window.mashhoorCountriesChat
+    }
+  }, [
+    screen,
+    chooser,
+    activePlayers
+  ])
+
+  if (champion) {
+    return (
+      <div className="cw-root cw-center">
+        <style>{styles}</style>
+
+        <div className="cw-win-card">
+          <div className="cw-trophy">🏆</div>
+
+          <small>
+            الفائز في حرب الدول
+          </small>
+
+          <h1>
+            {champion.name}
+          </h1>
+
+          <FlagImage
+            country={champion.country}
+            className="cw-big-flag-image"
+          />
+
+          <div className="cw-country-name">
+            {champion.country.name}
+          </div>
+
+          <button
+            className="cw-back"
+            onClick={onBack}
+          >
+            رجوع للتجهيز
+          </button>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="cw-root">
+      <style>{styles}</style>
+
+      <header className="cw-header">
+
+        <button
+          className="cw-back"
+          onClick={onBack}
+          disabled={spinning}
+        >
+          رجوع للتجهيز
+        </button>
+
+        <div className="cw-title">
+          <small>MASHHOOR GAMES</small>
+          <h2>حرب الدول</h2>
+        </div>
+
+        <b>
+          {activePlayers.length} لاعبين
+        </b>
+
+      </header>
+
+      {/* الشاشة الأولى */}
+      {screen === 'wheel' && (
+        <main className="cw-game-layout">
+
+          {/* اليسار */}
+          <section className="cw-wheel-side">
+
+            <div className="cw-wheel-wrap">
+
+              <div className="cw-pointer">
+                ▼
+              </div>
+
+              <div
+                className="cw-wheel"
+                style={{
+                  background:wheelBackground,
+                  transform:
+                    `translateX(-50%) rotate(${rotation}deg)`,
+                  transition:
+                    spinning
+                      ? 'transform 3.9s cubic-bezier(.10,.72,.10,1)'
+                      : 'none'
+                }}
+              >
+
+                {activePlayers.map(
+                  (player, index) => {
+
+                    const angle =
+                      index * part + part / 2
+
+                    const radius =
+                      activePlayers.length > 18
+                        ? 182
+                        : 171
+
+                    return (
+                      <div
+                        key={player.id}
+                        className="cw-wheel-name"
+                        style={{
+                          transform:
+                            `rotate(${angle}deg) translateY(-${radius}px) rotate(${-angle}deg)`
+                        }}
+                      >
+                        <b style={{
+                          fontSize:
+                            activePlayers.length > 20
+                              ? 8
+                              : activePlayers.length > 12
+                                ? 10
+                                : 12
+                        }}>
+                          {player.name}
+                        </b>
+                      </div>
+                    )
+                  }
+                )}
+
+                <button
+                  className="cw-wheel-center"
+                  onClick={spinWheel}
+                  disabled={spinning}
+                >
+                  <b>مشهور</b>
+                  <small>
+                    {spinning
+                      ? 'تدور...'
+                      : 'لف'}
+                  </small>
+                </button>
+
+              </div>
+
+            </div>
+
+          </section>
+
+          {/* اليمين */}
+          <aside className="cw-country-panel">
+
+            <div className="cw-panel-head">
+              <span>الدول</span>
+              <b>{activePlayers.length}</b>
+            </div>
+
+            <div className="cw-country-grid">
+
+              {activePlayers.map(player => (
+                <div
+                  className="cw-country-card"
+                  key={player.id}
+                >
+
+                  <span className="cw-country-number">
+                    {player.countryNumber}
+                  </span>
+
+                  <FlagImage
+                    country={player.country}
+                    className="cw-flag-image"
+                  />
+
+                  <b className="cw-name">
+                    {player.country.name}
+                  </b>
+
+                </div>
+              ))}
+
+            </div>
+
+          </aside>
+
+        </main>
+      )}
+
+      {/* الشاشة الثانية المنفصلة */}
+      {screen === 'wheel' && chooser && !spinning && (
+        <div className="cw-choice-overlay">
+          <div className="cw-choice-screen">
+
+          <div className="cw-chooser">
+
+            <small>
+              صاحب الدور
+            </small>
+
+            <h1>
+              {chooser.name}
+            </h1>
+
+            <p>
+              اختر دولة
+            </p>
+
+          </div>
+
+          <div className="cw-choice-grid">
+
+            {activePlayers
+              .filter(
+                player =>
+                  player.id !== chooser.id
+              )
+              .map(player => (
+                <button
+                  className="cw-choice-country"
+                  key={player.id}
+                  onClick={() =>
+                    chooseCountry(player)
+                  }
+                >
+
+                  <span className="cw-country-number">
+                    {player.countryNumber}
+                  </span>
+
+                  <FlagImage
+                    country={player.country}
+                    className="cw-choice-flag-image"
+                  />
+
+                  <b>
+                    {player.country.name}
+                  </b>
+
+                </button>
+              ))}
+
+          </div>
+
+          <div className="cw-choice-hint">
+            {chooser.name} يختار رقم الدولة
+          </div>
+
+          </div>
+        </div>
+      )}
+
+      {/* شاشة الإقصاء */}
+      {screen === 'effect' && effect && (
+        <main className="cw-effect-screen">
+
+          {effect.type === 'sad' && (
+            <>
+              <div className="cw-effect-emoji">
+                😢
+              </div>
+
+              <FlagImage
+                country={effect.player.country}
+                className="cw-effect-flag-image"
+              />
+
+              <h2>
+                {effect.player.country.name}
+              </h2>
+            </>
+          )}
+
+          {effect.type === 'special' && (
+            <>
+              <div className="cw-special-word">
+                تِف 💨
+              </div>
+
+              <FlagImage
+                country={effect.player.country}
+                className="cw-effect-flag-image cw-spin-out"
+              />
+
+              <h2>
+                {effect.player.country.name}
+              </h2>
+            </>
+          )}
+
+          {effect.type === 'normal' && (
+            <>
+              <FlagImage
+                country={effect.player.country}
+                className="cw-effect-flag-image"
+              />
+
+              <h2>
+                {effect.player.country.name}
+              </h2>
+
+              <small>
+                خرجت من الحرب
+              </small>
+            </>
+          )}
+
+        </main>
+      )}
+
+    </div>
+  )
+}
+
+const styles = `
+  .cw-root{
+    min-height:100vh;
+    box-sizing:border-box;
+    padding:20px;
+    direction:rtl;
+    background:#050705;
+    color:#fff;
+  }
+
+  .cw-root *{
+    box-sizing:border-box;
+  }
+
+  .cw-header{
+    max-width:1250px;
+    min-height:64px;
+    margin:0 auto 20px;
+    padding-bottom:14px;
+    border-bottom:1px solid #1d251d;
+    display:grid;
+    grid-template-columns:1fr auto 1fr;
+    align-items:center;
+  }
+
+  .cw-header > b{
+    justify-self:end;
+    color:#9eff28;
+    font-size:12px;
+  }
+
+  .cw-title{
+    text-align:center;
+  }
+
+  .cw-title small{
+    display:block;
+    color:#687468;
+    font-size:8px;
+    letter-spacing:3px;
+  }
+
+  .cw-title h2{
+    margin:3px 0 0;
+  }
+
+  .cw-back{
+    justify-self:start;
+    border:1px solid #293229;
+    border-radius:10px;
+    padding:10px 15px;
+    background:#0a0e0a;
+    color:#fff;
+    font-family:inherit;
+    cursor:pointer;
+  }
+
+  /* الشاشة الأولى */
+
+  .cw-game-layout{
+    max-width:1250px;
+    margin:auto;
+    display:grid;
+    grid-template-columns:minmax(520px,1fr) 360px;
+    gap:35px;
+    align-items:center;
+    direction:ltr;
+  }
+
+  .cw-wheel-side,
+  .cw-country-panel{
+    direction:rtl;
+  }
+
+  .cw-wheel-wrap{
+    position:relative;
+    width:520px;
+    height:520px;
+    max-width:100%;
+    margin:auto;
+  }
+
+  .cw-pointer{
+    position:absolute;
+    top:0;
+    left:50%;
+    z-index:30;
+    transform:translateX(-50%);
+    font-size:45px;
+  }
+
+  .cw-wheel{
+    position:absolute;
+    top:38px;
+    left:50%;
+    width:460px;
+    height:460px;
+    border-radius:50%;
+    border:8px solid #121912;
+    overflow:hidden;
+    box-shadow:
+      0 0 0 3px #263026,
+      0 0 70px rgba(158,255,40,.1);
+  }
+
+  .cw-wheel-name{
+    position:absolute;
+    top:50%;
+    left:50%;
+    width:150px;
+    height:24px;
+    margin-left:-75px;
+    margin-top:-12px;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    pointer-events:none;
+  }
+
+  .cw-wheel-name b{
+    max-width:135px;
+    overflow:hidden;
+    white-space:nowrap;
+    text-overflow:ellipsis;
+    color:#071007;
+    font-weight:1000;
+  }
+
+  .cw-wheel-center{
+    position:absolute;
+    z-index:20;
+    width:112px;
+    height:112px;
+    top:50%;
+    left:50%;
+    transform:translate(-50%,-50%);
+    border:6px solid #1a241a;
+    border-radius:50%;
+    background:#080d08;
+    color:#fff;
+    cursor:pointer;
+    font-family:inherit;
+  }
+
+  .cw-wheel-center b,
+  .cw-wheel-center small{
+    display:block;
+  }
+
+  .cw-wheel-center small{
+    color:#9eff28;
+    margin-top:4px;
+    font-size:8px;
+  }
+
+  .cw-country-panel{
+    padding:16px;
+    border:1px solid #202820;
+    border-radius:17px;
+    background:#090d09;
+  }
+
+  .cw-panel-head{
+    display:flex;
+    justify-content:space-between;
+    margin-bottom:12px;
+    color:#9eff28;
+    font-size:12px;
+  }
+
+  .cw-country-grid{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:8px;
+    max-height:590px;
+    overflow:auto;
+  }
+
+  .cw-country-card{
+    position:relative;
+    min-height:105px;
+    padding:9px 4px 8px;
+    text-align:center;
+    border:1px solid #263026;
+    border-radius:11px;
+    background:#070a07;
+  }
+
+  .cw-country-number{
+    position:absolute;
+    top:5px;
+    right:5px;
+    width:22px;
+    height:22px;
+    display:grid;
+    place-items:center;
+    border-radius:7px;
+    background:#151d15;
+    color:#9eff28;
+    font-size:9px;
+    font-weight:1000;
+  }
+
+  .cw-flag{
+    margin-top:7px;
+    font-size:40px;
+  }
+
+  .cw-name{
+    display:block;
+    margin-top:5px;
+    font-size:9px;
+    line-height:1.3;
+  }
+
+  /* الشاشة الثانية */
+
+  .cw-choice-overlay{
+    position:fixed;
+    inset:0;
+    z-index:100;
+    display:grid;
+    place-items:center;
+    padding:20px;
+    background:rgba(0,0,0,.68);
+    backdrop-filter:blur(5px);
+  }
+
+  .cw-choice-screen{
+    width:min(920px,96vw);
+    max-height:88vh;
+    overflow:auto;
+    padding:28px;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    border:1px solid #2b372b;
+    border-radius:22px;
+    background:#080d08;
+    box-shadow:0 30px 100px rgba(0,0,0,.8);
+  }
+
+  .cw-chooser{
+    text-align:center;
+    margin-bottom:22px;
+  }
+
+  .cw-chooser small{
+    color:#738073;
+  }
+
+  .cw-chooser h1{
+    margin:4px 0;
+    color:#9eff28;
+    font-size:clamp(48px,8vw,78px);
+  }
+
+  .cw-chooser p{
+    margin:5px 0;
+    color:#829082;
+  }
+
+  .cw-choice-grid{
+    width:100%;
+    display:grid;
+    grid-template-columns:
+      repeat(5,minmax(0,1fr));
+    gap:10px;
+    max-height:480px;
+    overflow:auto;
+    padding:4px;
+  }
+
+  .cw-choice-country{
+    position:relative;
+    min-height:125px;
+    padding:12px 7px 9px;
+    border:1px solid #283228;
+    border-radius:13px;
+    background:#080c08;
+    color:#fff;
+    font-family:inherit;
+    cursor:pointer;
+  }
+
+  .cw-choice-country:hover{
+    border-color:#607760;
+    transform:translateY(-1px);
+  }
+
+  .cw-choice-flag{
+    font-size:52px;
+    margin:7px 0 5px;
+  }
+
+  .cw-choice-country b{
+    display:block;
+    font-size:11px;
+  }
+
+  .cw-choice-hint{
+    margin-top:15px;
+    color:#778477;
+    font-size:11px;
+  }
+
+  /* الأنميشن */
+
+  .cw-effect-screen{
+    min-height:calc(100vh - 110px);
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+  }
+
+  .cw-effect-emoji{
+    font-size:80px;
+    animation:cwSad 1.4s ease;
+  }
+
+  .cw-effect-flag{
+    font-size:130px;
+    animation:cwPop 1.4s ease;
+  }
+
+  .cw-effect-screen h2{
+    margin:4px 0;
+    font-size:35px;
+  }
+
+  .cw-effect-screen small{
+    color:#798579;
+  }
+
+  .cw-special-word{
+    font-size:55px;
+    font-weight:1000;
+    margin-bottom:5px;
+    animation:cwPop .5s ease;
+  }
+
+  .cw-spin-out{
+    animation:cwSpinOut 1.5s ease forwards;
+  }
+
+  @keyframes cwPop{
+    0%{
+      opacity:0;
+      transform:scale(.55);
+    }
+    35%{
+      opacity:1;
+      transform:scale(1.15);
+    }
+    100%{
+      transform:scale(1);
+    }
+  }
+
+  @keyframes cwSad{
+    0%{
+      opacity:0;
+      transform:translateY(-25px);
+    }
+    30%{
+      opacity:1;
+    }
+    100%{
+      transform:translateY(20px);
+    }
+  }
+
+  @keyframes cwSpinOut{
+    0%{
+      transform:rotate(0) scale(1);
+      opacity:1;
+    }
+    100%{
+      transform:rotate(720deg) scale(.1);
+      opacity:0;
+    }
+  }
+
+  /* فائز */
+
+  .cw-center{
+    display:grid;
+    place-items:center;
+  }
+
+  .cw-win-card{
+    width:min(600px,94vw);
+    padding:40px;
+    text-align:center;
+    border:1px solid rgba(158,255,40,.3);
+    border-radius:23px;
+    background:#080d08;
+  }
+
+  .cw-trophy{
+    font-size:65px;
+  }
+
+  .cw-win-card h1{
+    margin:7px 0;
+    color:#9eff28;
+    font-size:50px;
+  }
+
+  .cw-big-flag{
+    font-size:100px;
+  }
+
+  .cw-country-name{
+    margin:0 0 25px;
+    font-size:20px;
+  }
+
+  .cw-flag-image{
+    display:block;
+    width:68px;
+    height:44px;
+    object-fit:cover;
+    margin:12px auto 6px;
+    border-radius:5px;
+    box-shadow:0 4px 12px rgba(0,0,0,.35);
+  }
+
+  .cw-choice-flag-image{
+    display:block;
+    width:92px;
+    height:60px;
+    object-fit:cover;
+    margin:12px auto 8px;
+    border-radius:7px;
+    box-shadow:0 6px 18px rgba(0,0,0,.4);
+  }
+
+  .cw-big-flag-image{
+    display:block;
+    width:180px;
+    max-height:120px;
+    object-fit:cover;
+    margin:18px auto 10px;
+    border-radius:10px;
+  }
+
+  .cw-effect-flag-image{
+    display:block;
+    width:190px;
+    max-height:125px;
+    object-fit:cover;
+    margin:15px auto;
+    border-radius:10px;
+  }
+
+  @media(max-width:900px){
+    .cw-game-layout{
+      grid-template-columns:1fr;
+    }
+
+    .cw-country-panel{
+      width:min(650px,100%);
+      margin:auto;
+    }
+
+    .cw-choice-grid{
+      grid-template-columns:
+        repeat(3,minmax(0,1fr));
+    }
+  }
+
+  @media(max-width:550px){
+    .cw-country-grid{
+      grid-template-columns:repeat(2,1fr);
+    }
+
+    .cw-choice-grid{
+      grid-template-columns:
+        repeat(2,minmax(0,1fr));
+    }
+
+    .cw-wheel-wrap{
+      height:390px;
+    }
+
+    .cw-wheel{
+      width:340px;
+      height:340px;
+    }
+  }
+`

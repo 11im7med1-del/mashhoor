@@ -1,0 +1,1039 @@
+import { useState } from 'react'
+
+const COLORS = [
+  '#9eff28','#24d1ff','#ffb020','#ff5f75',
+  '#a978ff','#35e0a1','#ff7a2f','#4d8dff',
+  '#e8ff52','#ff5cc8','#72e6ff','#b6ff66',
+  '#ffcc4d','#9b7cff','#45d6b5','#ff8f70'
+]
+
+function createPlayers(players) {
+  return players.slice(0, 30).map((name, index) => ({
+    id: `${index}-${name}`,
+    name,
+    color: COLORS[index % COLORS.length]
+  }))
+}
+
+export default function RussianPlay({ players, onBack }) {
+  const [activePlayers, setActivePlayers] = useState(() => createPlayers(players))
+
+  const [screen, setScreen] = useState('roulette')
+
+  const [rotation, setRotation] = useState(0)
+  const [spinning, setSpinning] = useState(false)
+  const [selectedPlayer, setSelectedPlayer] = useState(null)
+
+  // طلقة واحدة بمكان عشوائي من 6
+  const [loadedChamber, setLoadedChamber] = useState(
+    () => Math.floor(Math.random() * 6)
+  )
+
+  const [triggerIndex, setTriggerIndex] = useState(0)
+  const [gunLocked, setGunLocked] = useState(false)
+  const [gunState, setGunState] = useState('ready')
+
+  const champion =
+    activePlayers.length === 1
+      ? activePlayers[0]
+      : null
+
+  const part =
+    activePlayers.length
+      ? 360 / activePlayers.length
+      : 360
+
+  const wheelBackground =
+    activePlayers.length
+      ? `conic-gradient(${activePlayers.map((player, index) => {
+          const start = index * part
+          const end = (index + 1) * part
+
+          return `${player.color} ${start}deg ${end}deg`
+        }).join(',')})`
+      : '#111'
+
+  function playClickSound() {
+    try {
+      const AudioContext =
+        window.AudioContext || window.webkitAudioContext
+
+      const ctx = new AudioContext()
+      const osc = ctx.createOscillator()
+      const gain = ctx.createGain()
+
+      osc.type = 'square'
+      osc.frequency.setValueAtTime(150, ctx.currentTime)
+
+      gain.gain.setValueAtTime(.06, ctx.currentTime)
+      gain.gain.exponentialRampToValueAtTime(
+        .001,
+        ctx.currentTime + .1
+      )
+
+      osc.connect(gain)
+      gain.connect(ctx.destination)
+
+      osc.start()
+      osc.stop(ctx.currentTime + .1)
+
+      setTimeout(() => ctx.close(), 250)
+    } catch {}
+  }
+
+  function playBangSound() {
+    try {
+      const AudioContext =
+        window.AudioContext || window.webkitAudioContext
+
+      const ctx = new AudioContext()
+
+      const bufferSize = ctx.sampleRate * .35
+      const buffer = ctx.createBuffer(
+        1,
+        bufferSize,
+        ctx.sampleRate
+      )
+
+      const data = buffer.getChannelData(0)
+
+      for (let i = 0; i < bufferSize; i++) {
+        data[i] =
+          (Math.random() * 2 - 1) *
+          Math.pow(1 - i / bufferSize, 2)
+      }
+
+      const noise = ctx.createBufferSource()
+      const gain = ctx.createGain()
+
+      noise.buffer = buffer
+
+      gain.gain.setValueAtTime(.22, ctx.currentTime)
+      gain.gain.exponentialRampToValueAtTime(
+        .001,
+        ctx.currentTime + .35
+      )
+
+      noise.connect(gain)
+      gain.connect(ctx.destination)
+
+      noise.start()
+
+      setTimeout(() => ctx.close(), 500)
+    } catch {}
+  }
+
+  function spinWheel() {
+    if (
+      spinning ||
+      activePlayers.length <= 1
+    ) return
+
+    setSelectedPlayer(null)
+    setSpinning(true)
+
+    const selectedIndex =
+      Math.floor(
+        Math.random() * activePlayers.length
+      )
+
+    const player =
+      activePlayers[selectedIndex]
+
+    const segment =
+      360 / activePlayers.length
+
+    const center =
+      selectedIndex * segment +
+      segment / 2
+
+    const current =
+      ((rotation % 360) + 360) % 360
+
+    const target =
+      (360 - center) % 360
+
+    const correction =
+      (target - current + 360) % 360
+
+    const next =
+      rotation +
+      (360 * 7) +
+      correction
+
+    setRotation(next)
+
+    setTimeout(() => {
+      setSpinning(false)
+      setSelectedPlayer(player)
+
+      // يبقى الاسم ظاهر شوي ثم ينتقل لشاشة المسدس
+      setTimeout(() => {
+        setGunState('ready')
+        setScreen('gun')
+      }, 900)
+
+    }, 3800)
+  }
+
+  function fireGun() {
+    if (
+      gunLocked ||
+      !selectedPlayer
+    ) return
+
+    setGunLocked(true)
+
+    const fired =
+      triggerIndex === loadedChamber
+
+    if (fired) {
+      setGunState('bang')
+      playBangSound()
+
+      setTimeout(() => {
+        setActivePlayers(current =>
+          current.filter(
+            player =>
+              player.id !== selectedPlayer.id
+          )
+        )
+
+        setLoadedChamber(
+          Math.floor(Math.random() * 6)
+        )
+
+        setTriggerIndex(0)
+        setSelectedPlayer(null)
+        setGunState('ready')
+        setGunLocked(false)
+        setScreen('roulette')
+      }, 1700)
+
+      return
+    }
+
+    setGunState('safe')
+    playClickSound()
+
+    setTimeout(() => {
+      setTriggerIndex(current => current + 1)
+
+      setSelectedPlayer(null)
+      setGunState('ready')
+      setGunLocked(false)
+      setScreen('roulette')
+    }, 1100)
+  }
+
+  if (champion) {
+    return (
+      <div className="rr-root rr-winner">
+        <style>{styles}</style>
+
+        <div className="rr-winner-card">
+          <div className="rr-trophy">🏆</div>
+
+          <small>الفائز في الروليت الروسي</small>
+
+          <h1>{champion.name}</h1>
+
+          <button
+            className="rr-dark-btn"
+            onClick={onBack}
+          >
+            رجوع للتجهيز
+          </button>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="rr-root">
+      <style>{styles}</style>
+
+      <header className="rr-header">
+
+        <button
+          className="rr-dark-btn"
+          onClick={onBack}
+          disabled={spinning || gunLocked}
+        >
+          رجوع للتجهيز
+        </button>
+
+        <div className="rr-title">
+          <small>MASHHOOR GAMES</small>
+          <h2>الروليت الروسي</h2>
+        </div>
+
+        <div className="rr-count">
+          {activePlayers.length} لاعبين
+        </div>
+
+      </header>
+
+      {screen === 'roulette' && (
+        <main className="rr-selection">
+
+          <aside className="rr-players">
+
+            <div className="rr-panel-head">
+              <span>اللاعبون</span>
+              <b>{activePlayers.length}</b>
+            </div>
+
+            <div className="rr-player-list">
+              {activePlayers.map((player, index) => (
+                <div
+                  className="rr-player-row"
+                  key={player.id}
+                >
+                  <span
+                    className="rr-player-number"
+                    style={{
+                      background:player.color
+                    }}
+                  >
+                    {index + 1}
+                  </span>
+
+                  <b>{player.name}</b>
+                </div>
+              ))}
+            </div>
+
+          </aside>
+
+          <section className="rr-wheel-stage">
+
+            <div className="rr-screen-label">
+              اختيار اللاعب
+            </div>
+
+            <div className="rr-wheel-wrap">
+
+              <div className="rr-pointer">
+                ▼
+              </div>
+
+              <div
+                className="rr-wheel"
+                style={{
+                  background:wheelBackground,
+                  transform:
+                    `translateX(-50%) rotate(${rotation}deg)`,
+                  transition:
+                    spinning
+                      ? 'transform 3.8s cubic-bezier(.10,.72,.10,1)'
+                      : 'none'
+                }}
+              >
+
+                {activePlayers.map(
+                  (player, index) => {
+                    const angle =
+                      index * part +
+                      part / 2
+
+                    const radius =
+                      activePlayers.length > 18
+                        ? 180
+                        : 170
+
+                    return (
+                      <div
+                        className="rr-wheel-name"
+                        key={player.id}
+                        style={{
+                          transform:
+                            `rotate(${angle}deg) translateY(-${radius}px) rotate(${-angle}deg)`
+                        }}
+                      >
+                        <b style={{
+                          fontSize:
+                            activePlayers.length > 20
+                              ? 8
+                              : activePlayers.length > 12
+                                ? 10
+                                : 12
+                        }}>
+                          {player.name}
+                        </b>
+                      </div>
+                    )
+                  }
+                )}
+
+                <button
+                  className="rr-wheel-center"
+                  onClick={spinWheel}
+                  disabled={spinning}
+                >
+                  <b>مشهور</b>
+                  <small>
+                    {spinning
+                      ? 'تدور...'
+                      : 'اضغط'}
+                  </small>
+                </button>
+
+              </div>
+
+            </div>
+
+            <div className="rr-selected-name">
+              <small>
+                {spinning
+                  ? 'جاري الاختيار'
+                  : selectedPlayer
+                    ? 'تم الاختيار'
+                    : 'اضغط على منتصف العجلة'}
+              </small>
+
+              <h1>
+                {selectedPlayer
+                  ? selectedPlayer.name
+                  : '—'}
+              </h1>
+            </div>
+
+          </section>
+
+        </main>
+      )}
+
+      {screen === 'gun' && selectedPlayer && (
+        <main
+          className={
+            `rr-gun-screen ${
+              gunState === 'bang'
+                ? 'is-bang'
+                : gunState === 'safe'
+                  ? 'is-safe'
+                  : ''
+            }`
+          }
+        >
+
+          <div className="rr-gun-player">
+            <small>الدور على</small>
+            <h1>{selectedPlayer.name}</h1>
+          </div>
+
+          <button
+            className="rr-gun-button"
+            onClick={fireGun}
+            disabled={gunLocked}
+            aria-label="الزناد"
+          >
+
+            <div className="rr-revolver">
+
+              <div className="rr-barrel" />
+
+              <div className="rr-barrel-tip" />
+
+              <div className="rr-body">
+
+                <div className="rr-cylinder">
+                  {[0,1,2,3,4,5].map(i => (
+                    <span key={i} />
+                  ))}
+                </div>
+
+              </div>
+
+              <div className="rr-trigger-ring">
+                <div className="rr-trigger" />
+              </div>
+
+              <div className="rr-grip" />
+
+            </div>
+
+          </button>
+
+          <div className="rr-gun-result">
+
+            {gunState === 'ready' && (
+              <span className="rr-ready-dot">
+                ●
+              </span>
+            )}
+
+            {gunState === 'safe' && (
+              <h2 className="rr-safe-text">
+                نجا
+              </h2>
+            )}
+
+            {gunState === 'bang' && (
+              <h2 className="rr-bang-text">
+                💥 خرج من اللعبة
+              </h2>
+            )}
+
+          </div>
+
+        </main>
+      )}
+
+    </div>
+  )
+}
+
+const styles = `
+  .rr-root{
+    min-height:100vh;
+    box-sizing:border-box;
+    direction:rtl;
+    color:#fff;
+    padding:20px;
+    background:
+      radial-gradient(circle at 70% 0,rgba(158,255,40,.07),transparent 30%),
+      #050705;
+  }
+
+  .rr-root *{
+    box-sizing:border-box;
+  }
+
+  .rr-header{
+    max-width:1250px;
+    min-height:65px;
+    margin:0 auto 20px;
+    padding-bottom:14px;
+    border-bottom:1px solid #1c241c;
+    display:grid;
+    grid-template-columns:1fr auto 1fr;
+    align-items:center;
+  }
+
+  .rr-title{
+    text-align:center;
+  }
+
+  .rr-title small{
+    display:block;
+    color:#687469;
+    font-size:8px;
+    letter-spacing:3px;
+  }
+
+  .rr-title h2{
+    margin:4px 0 0;
+  }
+
+  .rr-count{
+    justify-self:end;
+    color:#9eff28;
+    font-size:12px;
+  }
+
+  .rr-dark-btn{
+    justify-self:start;
+    border:1px solid #293229;
+    background:#0a0e0a;
+    color:#fff;
+    border-radius:10px;
+    padding:10px 15px;
+    font-family:inherit;
+    cursor:pointer;
+  }
+
+  .rr-selection{
+    max-width:1200px;
+    margin:auto;
+    display:grid;
+    grid-template-columns:290px 1fr;
+    gap:35px;
+    align-items:center;
+  }
+
+  .rr-players{
+    padding:16px;
+    border:1px solid #202820;
+    border-radius:16px;
+    background:#090d09;
+  }
+
+  .rr-panel-head{
+    display:flex;
+    justify-content:space-between;
+    margin-bottom:12px;
+    color:#9eff28;
+    font-size:12px;
+  }
+
+  .rr-player-list{
+    display:grid;
+    gap:6px;
+    max-height:520px;
+    overflow:auto;
+  }
+
+  .rr-player-row{
+    min-height:39px;
+    padding:6px 8px;
+    border:1px solid #202720;
+    border-radius:9px;
+    background:#070a07;
+    display:flex;
+    align-items:center;
+    gap:9px;
+  }
+
+  .rr-player-row b{
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+    font-size:12px;
+  }
+
+  .rr-player-number{
+    width:25px;
+    height:25px;
+    border-radius:7px;
+    flex:0 0 25px;
+    display:grid;
+    place-items:center;
+    color:#061006;
+    font-size:9px;
+    font-weight:1000;
+  }
+
+  .rr-wheel-stage{
+    text-align:center;
+  }
+
+  .rr-screen-label{
+    color:#748075;
+    font-size:10px;
+    margin-bottom:3px;
+  }
+
+  .rr-wheel-wrap{
+    position:relative;
+    width:500px;
+    height:500px;
+    max-width:100%;
+    margin:auto;
+  }
+
+  .rr-pointer{
+    position:absolute;
+    z-index:30;
+    top:0;
+    left:50%;
+    transform:translateX(-50%);
+    font-size:44px;
+    filter:drop-shadow(0 4px 6px #000);
+  }
+
+  .rr-wheel{
+    position:absolute;
+    top:38px;
+    left:50%;
+    width:445px;
+    height:445px;
+    border-radius:50%;
+    border:8px solid #121912;
+    box-shadow:
+      0 0 0 3px #263026,
+      0 0 70px rgba(158,255,40,.1);
+    overflow:hidden;
+  }
+
+  .rr-wheel-name{
+    position:absolute;
+    top:50%;
+    left:50%;
+    width:145px;
+    height:24px;
+    margin-left:-72.5px;
+    margin-top:-12px;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    pointer-events:none;
+  }
+
+  .rr-wheel-name b{
+    max-width:130px;
+    overflow:hidden;
+    white-space:nowrap;
+    text-overflow:ellipsis;
+    color:#071007;
+    font-weight:1000;
+  }
+
+  .rr-wheel-center{
+    position:absolute;
+    z-index:20;
+    width:112px;
+    height:112px;
+    top:50%;
+    left:50%;
+    transform:translate(-50%,-50%);
+    border:6px solid #1a241a;
+    border-radius:50%;
+    background:#080d08;
+    color:#fff;
+    cursor:pointer;
+    font-family:inherit;
+    box-shadow:0 6px 25px rgba(0,0,0,.6);
+  }
+
+  .rr-wheel-center b{
+    display:block;
+    font-size:21px;
+  }
+
+  .rr-wheel-center small{
+    display:block;
+    margin-top:4px;
+    color:#9eff28;
+    font-size:8px;
+  }
+
+  .rr-selected-name{
+    min-height:80px;
+    margin-top:5px;
+  }
+
+  .rr-selected-name small{
+    color:#697569;
+  }
+
+  .rr-selected-name h1{
+    margin:4px 0;
+    color:#9eff28;
+    font-size:36px;
+  }
+
+  .rr-gun-screen{
+    position:relative;
+    min-height:calc(100vh - 110px);
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    overflow:hidden;
+  }
+
+  .rr-gun-player{
+    position:relative;
+    z-index:5;
+    text-align:center;
+    margin-bottom:25px;
+  }
+
+  .rr-gun-player small{
+    color:#687469;
+    font-size:11px;
+  }
+
+  .rr-gun-player h1{
+    margin:5px 0;
+    color:#9eff28;
+    font-size:clamp(42px,7vw,70px);
+  }
+
+  .rr-gun-button{
+    position:relative;
+    z-index:5;
+    width:520px;
+    height:300px;
+    max-width:94vw;
+    border:0;
+    background:transparent;
+    cursor:pointer;
+  }
+
+  .rr-gun-button:disabled{
+    cursor:default;
+  }
+
+  .rr-revolver{
+    position:absolute;
+    width:470px;
+    height:245px;
+    max-width:100%;
+    left:50%;
+    top:50%;
+    transform:translate(-50%,-50%);
+    transition:.18s;
+  }
+
+  .rr-gun-button:not(:disabled):hover .rr-revolver{
+    transform:translate(-50%,-50%) scale(1.025);
+  }
+
+  .rr-barrel{
+    position:absolute;
+    z-index:4;
+    width:235px;
+    height:52px;
+    left:15px;
+    top:55px;
+    border:4px solid #333c34;
+    border-radius:14px 5px 5px 14px;
+    background:
+      linear-gradient(180deg,#293029,#111611);
+    box-shadow:
+      inset 0 4px rgba(255,255,255,.035),
+      0 12px 25px rgba(0,0,0,.45);
+  }
+
+  .rr-barrel::after{
+    content:'';
+    position:absolute;
+    left:18px;
+    right:18px;
+    bottom:9px;
+    height:4px;
+    border-radius:99px;
+    background:#0b0f0b;
+  }
+
+  .rr-barrel-tip{
+    position:absolute;
+    z-index:7;
+    width:23px;
+    height:61px;
+    left:5px;
+    top:51px;
+    border:4px solid #39423a;
+    border-radius:7px;
+    background:#080b08;
+  }
+
+  .rr-body{
+    position:absolute;
+    z-index:6;
+    width:175px;
+    height:118px;
+    left:215px;
+    top:43px;
+    border:4px solid #333d34;
+    border-radius:22px 24px 17px 20px;
+    background:linear-gradient(145deg,#272e27,#0f140f);
+    box-shadow:0 13px 30px rgba(0,0,0,.5);
+  }
+
+  .rr-cylinder{
+    position:absolute;
+    width:94px;
+    height:94px;
+    left:25px;
+    top:8px;
+    border:5px solid #3c463d;
+    border-radius:50%;
+    background:#111711;
+    transform:rotate(15deg);
+  }
+
+  .rr-cylinder span{
+    position:absolute;
+    width:18px;
+    height:18px;
+    border:3px solid #343e35;
+    border-radius:50%;
+    background:#070a07;
+  }
+
+  .rr-cylinder span:nth-child(1){left:35px;top:6px}
+  .rr-cylinder span:nth-child(2){left:60px;top:21px}
+  .rr-cylinder span:nth-child(3){left:60px;top:52px}
+  .rr-cylinder span:nth-child(4){left:35px;top:67px}
+  .rr-cylinder span:nth-child(5){left:10px;top:52px}
+  .rr-cylinder span:nth-child(6){left:10px;top:21px}
+
+  .rr-trigger-ring{
+    position:absolute;
+    z-index:8;
+    width:75px;
+    height:57px;
+    left:292px;
+    top:142px;
+    border:7px solid #293229;
+    border-radius:10px 10px 45px 45px;
+  }
+
+  .rr-trigger{
+    position:absolute;
+    width:9px;
+    height:32px;
+    left:22px;
+    top:-4px;
+    border-radius:8px;
+    background:#9eff28;
+    transform:rotate(-17deg);
+    box-shadow:0 0 17px rgba(158,255,40,.2);
+  }
+
+  .rr-grip{
+    position:absolute;
+    z-index:5;
+    width:91px;
+    height:125px;
+    left:354px;
+    top:125px;
+    border:4px solid #2f3830;
+    border-radius:8px 17px 32px 15px;
+    background:
+      repeating-linear-gradient(
+        45deg,
+        #171d17 0 8px,
+        #111611 8px 16px
+      );
+    transform:rotate(-12deg);
+    transform-origin:top;
+    box-shadow:0 12px 25px rgba(0,0,0,.45);
+  }
+
+  .rr-gun-result{
+    position:relative;
+    z-index:5;
+    height:70px;
+    text-align:center;
+  }
+
+  .rr-ready-dot{
+    color:#9eff28;
+    font-size:18px;
+    animation:rrPulse 1.2s ease infinite;
+  }
+
+  .rr-safe-text{
+    color:#9eff28;
+    font-size:35px;
+    animation:rrResult .3s ease;
+  }
+
+  .rr-bang-text{
+    color:#ff5a62;
+    font-size:34px;
+    animation:rrResult .3s ease;
+  }
+
+  .is-bang::after{
+    content:'';
+    position:fixed;
+    inset:0;
+    z-index:2;
+    pointer-events:none;
+    background:rgba(255,30,40,.18);
+    animation:rrFlash .35s ease forwards;
+  }
+
+  .is-bang .rr-revolver{
+    animation:rrKick .3s ease;
+  }
+
+  .is-safe .rr-trigger{
+    animation:rrTrigger .25s ease;
+  }
+
+  @keyframes rrPulse{
+    50%{opacity:.3}
+  }
+
+  @keyframes rrResult{
+    from{
+      opacity:0;
+      transform:scale(.75);
+    }
+  }
+
+  @keyframes rrFlash{
+    from{opacity:1}
+    to{opacity:0}
+  }
+
+  @keyframes rrKick{
+    0%{
+      transform:translate(-50%,-50%);
+    }
+    45%{
+      transform:translate(-46%,-57%) rotate(-7deg);
+    }
+    100%{
+      transform:translate(-50%,-50%);
+    }
+  }
+
+  @keyframes rrTrigger{
+    50%{
+      transform:rotate(18deg);
+    }
+  }
+
+  .rr-winner{
+    display:grid;
+    place-items:center;
+  }
+
+  .rr-winner-card{
+    width:min(600px,94vw);
+    text-align:center;
+    padding:45px;
+    border:1px solid rgba(158,255,40,.3);
+    border-radius:24px;
+    background:#080d08;
+    box-shadow:0 30px 90px #000;
+  }
+
+  .rr-trophy{
+    font-size:65px;
+  }
+
+  .rr-winner-card small{
+    color:#768276;
+  }
+
+  .rr-winner-card h1{
+    margin:8px 0 30px;
+    color:#9eff28;
+    font-size:50px;
+  }
+
+  @media(max-width:850px){
+    .rr-selection{
+      grid-template-columns:1fr;
+    }
+
+    .rr-players{
+      order:2;
+    }
+
+    .rr-player-list{
+      max-height:200px;
+    }
+  }
+
+  @media(max-width:520px){
+    .rr-header{
+      grid-template-columns:1fr auto;
+    }
+
+    .rr-count{
+      display:none;
+    }
+
+    .rr-wheel-wrap{
+      height:380px;
+    }
+
+    .rr-wheel{
+      width:335px;
+      height:335px;
+    }
+
+    .rr-revolver{
+      transform:translate(-50%,-50%) scale(.78);
+    }
+  }
+`

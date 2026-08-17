@@ -397,16 +397,6 @@ export default function RoulettePlay({ players, mode, onBack }) {
   }
 
   function revivePlayer(player) {
-    // في وضع الفرق: صاحب الدور ينعش من فريقه فقط
-    if (
-      mode === 'teams' &&
-      winner &&
-      player.team !== winner.team
-    ) {
-      tone(180, 0.18, 0.06)
-      return
-    }
-
     setEliminated(current =>
       current.filter(p => p.id !== player.id)
     )
@@ -1513,22 +1503,7 @@ export default function RoulettePlay({ players, mode, onBack }) {
                 <button
                   className="revive-btn"
                   onClick={() => revivePlayer(player)}
-                  disabled={
-                    spinning ||
-                    (
-                      mode === 'teams' &&
-                      winner &&
-                      player.team !== winner.team
-                    )
-                  }
-                  style={{
-                    opacity:
-                      mode === 'teams' &&
-                      winner &&
-                      player.team !== winner.team
-                        ? .35
-                        : 1
-                  }}
+                  disabled={spinning}
                 >
                   💚 إنعاش
                 </button>
@@ -1900,13 +1875,7 @@ export default function RoulettePlay({ players, mode, onBack }) {
                   overflowY:'auto'
                 }}>
 
-                  {eliminated
-                    .filter(player =>
-                      mode !== 'teams' ||
-                      !winner ||
-                      player.team === winner.team
-                    )
-                    .map(player => (
+                  {eliminated.map(player => (
                     <div
                       key={player.id}
                       style={{

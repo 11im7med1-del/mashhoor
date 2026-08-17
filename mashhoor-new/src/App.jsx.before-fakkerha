@@ -3,8 +3,6 @@ import './index.css'
 import RoulettePlay from './games/roulette/RoulettePlay'
 import RussianSetup from './games/russian/RussianSetup'
 import CountriesSetup from './games/countries/CountriesSetup'
-import FakkerhaSetup from './games/fakkerha/FakkerhaSetup'
-import LettersSetup from './games/letters/LettersSetup'
 
 const games = [
   { id:'roulette', num:'01', title:'الروليت', desc:'اختيار، حظ، وقرارات مباشرة', icon:'◉' },
@@ -151,14 +149,6 @@ export default function App() {
 
   if (activeGame === 'countries') {
     return <CountriesSetup onBack={() => setActiveGame(null)} />
-  }
-
-  if (activeGame === 'fakkerha') {
-    return <FakkerhaSetup onBack={() => setActiveGame(null)} />
-  }
-
-  if (activeGame === 'letters') {
-    return <LettersSetup onBack={() => setActiveGame(null)} />
   }
 
   return (

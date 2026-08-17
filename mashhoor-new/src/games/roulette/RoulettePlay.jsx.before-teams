@@ -33,11 +33,6 @@ const COLORS = [
   '#a9ff58'
 ]
 
-const TEAM_COLORS = {
-  red: '#ff4f5e',
-  blue: '#438cff'
-}
-
 const SPEEDS = {
   fast: {
     label: 'سريع',
@@ -53,53 +48,17 @@ const SPEEDS = {
   }
 }
 
-function makePlayers(players, mode) {
-  const base = players.slice(0, 30).map((name, index) => ({
+function makePlayers(players) {
+  return players.slice(0, 30).map((name, index) => ({
     id: `${index}-${name}`,
     name,
     number: index + 1,
-    team: null,
     color: COLORS[index % COLORS.length]
   }))
-
-  if (mode !== 'teams') {
-    return base
-  }
-
-  // خلط عشوائي حقيقي
-  const mixed = [...base]
-
-  for (let i = mixed.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1))
-
-    const temp = mixed[i]
-    mixed[i] = mixed[j]
-    mixed[j] = temp
-  }
-
-  // الفريق الذي يأخذ اللاعب الإضافي يتغير عشوائياً
-  const firstTeam =
-    Math.random() < 0.5 ? 'red' : 'blue'
-
-  const secondTeam =
-    firstTeam === 'red' ? 'blue' : 'red'
-
-  return mixed.map((player, index) => {
-    const team =
-      index % 2 === 0
-        ? firstTeam
-        : secondTeam
-
-    return {
-      ...player,
-      team,
-      color: TEAM_COLORS[team]
-    }
-  })
 }
 
 export default function RoulettePlay({ players, mode, onBack }) {
-  const [activePlayers, setActivePlayers] = useState(() => makePlayers(players, mode))
+  const [activePlayers, setActivePlayers] = useState(() => makePlayers(players))
   const [eliminated, setEliminated] = useState([])
 
   const [rotation, setRotation] = useState(0)
@@ -321,15 +280,6 @@ export default function RoulettePlay({ players, mode, onBack }) {
       return
     }
 
-    // في وضع الفرق: الطرد من الفريق الخصم فقط
-    if (
-      mode === 'teams' &&
-      targetPlayer.team === winner.team
-    ) {
-      tone(180, 0.18, 0.06)
-      return
-    }
-
     setWaitingForChoice(false)
 
     setEffect({
@@ -397,16 +347,6 @@ export default function RoulettePlay({ players, mode, onBack }) {
   }
 
   function revivePlayer(player) {
-    // في وضع الفرق: صاحب الدور ينعش من فريقه فقط
-    if (
-      mode === 'teams' &&
-      winner &&
-      player.team !== winner.team
-    ) {
-      tone(180, 0.18, 0.06)
-      return
-    }
-
     setEliminated(current =>
       current.filter(p => p.id !== player.id)
     )
@@ -432,38 +372,10 @@ export default function RoulettePlay({ players, mode, onBack }) {
     }, 1400)
   }
 
-  const redCount = activePlayers.filter(
-    player => player.team === 'red'
-  ).length
-
-  const blueCount = activePlayers.filter(
-    player => player.team === 'blue'
-  ).length
-
-  const winningTeam =
-    mode === 'teams' && activePlayers.length > 0
-      ? redCount === 0
-        ? 'blue'
-        : blueCount === 0
-          ? 'red'
-          : null
-      : null
-
   const champion =
-    mode === 'teams'
-      ? winningTeam
-        ? {
-            name:
-              winningTeam === 'red'
-                ? 'الفريق الأحمر'
-                : 'الفريق الأزرق',
-            team: winningTeam,
-            color: TEAM_COLORS[winningTeam]
-          }
-        : null
-      : activePlayers.length === 1
-        ? activePlayers[0]
-        : null
+    activePlayers.length === 1
+      ? activePlayers[0]
+      : null
 
   return (
     <div className="roulette-game">
@@ -1376,51 +1288,6 @@ export default function RoulettePlay({ players, mode, onBack }) {
             <b>{activePlayers.length} / 30</b>
           </div>
 
-          {mode === 'teams' && (
-            <div style={{
-              display:'grid',
-              gridTemplateColumns:'1fr 1fr',
-              gap:'7px',
-              marginBottom:'11px'
-            }}>
-
-              <div style={{
-                minHeight:'38px',
-                display:'flex',
-                alignItems:'center',
-                justifyContent:'space-between',
-                padding:'7px 9px',
-                border:'1px solid rgba(255,79,94,.25)',
-                borderRadius:'9px',
-                background:'rgba(255,79,94,.07)',
-                color:'#ff7b86',
-                fontSize:'11px',
-                fontWeight:'900'
-              }}>
-                <span>🔴 الأحمر</span>
-                <b>{redCount}</b>
-              </div>
-
-              <div style={{
-                minHeight:'38px',
-                display:'flex',
-                alignItems:'center',
-                justifyContent:'space-between',
-                padding:'7px 9px',
-                border:'1px solid rgba(67,140,255,.25)',
-                borderRadius:'9px',
-                background:'rgba(67,140,255,.07)',
-                color:'#76aaff',
-                fontSize:'11px',
-                fontWeight:'900'
-              }}>
-                <span>🔵 الأزرق</span>
-                <b>{blueCount}</b>
-              </div>
-
-            </div>
-          )}
-
           <div className="player-scroll">
 
             {activePlayers.map((player, index) => (
@@ -1440,32 +1307,6 @@ export default function RoulettePlay({ players, mode, onBack }) {
                 <span className="player-name">
                   {player.name}
                 </span>
-
-                {mode === 'teams' && (
-                  <span style={{
-                    marginRight:'auto',
-                    borderRadius:'999px',
-                    padding:'3px 7px',
-                    fontSize:'8px',
-                    fontWeight:'900',
-                    border:
-                      player.team === 'red'
-                        ? '1px solid rgba(255,79,94,.35)'
-                        : '1px solid rgba(67,140,255,.35)',
-                    color:
-                      player.team === 'red'
-                        ? '#ff7b86'
-                        : '#76aaff',
-                    background:
-                      player.team === 'red'
-                        ? 'rgba(255,79,94,.08)'
-                        : 'rgba(67,140,255,.08)'
-                  }}>
-                    {player.team === 'red'
-                      ? 'أحمر'
-                      : 'أزرق'}
-                  </span>
-                )}
               </div>
             ))}
 
@@ -1513,22 +1354,7 @@ export default function RoulettePlay({ players, mode, onBack }) {
                 <button
                   className="revive-btn"
                   onClick={() => revivePlayer(player)}
-                  disabled={
-                    spinning ||
-                    (
-                      mode === 'teams' &&
-                      winner &&
-                      player.team !== winner.team
-                    )
-                  }
-                  style={{
-                    opacity:
-                      mode === 'teams' &&
-                      winner &&
-                      player.team !== winner.team
-                        ? .35
-                        : 1
-                  }}
+                  disabled={spinning}
                 >
                   💚 إنعاش
                 </button>
@@ -1779,33 +1605,6 @@ export default function RoulettePlay({ players, mode, onBack }) {
               {winner.name}
             </h2>
 
-            {mode === 'teams' && (
-              <div style={{
-                display:'inline-block',
-                marginBottom:'10px',
-                padding:'5px 12px',
-                borderRadius:'999px',
-                fontSize:'10px',
-                fontWeight:'900',
-                color:
-                  winner.team === 'red'
-                    ? '#ff7b86'
-                    : '#76aaff',
-                background:
-                  winner.team === 'red'
-                    ? 'rgba(255,79,94,.08)'
-                    : 'rgba(67,140,255,.08)',
-                border:
-                  winner.team === 'red'
-                    ? '1px solid rgba(255,79,94,.3)'
-                    : '1px solid rgba(67,140,255,.3)'
-              }}>
-                {winner.team === 'red'
-                  ? '🔴 الفريق الأحمر'
-                  : '🔵 الفريق الأزرق'}
-              </div>
-            )}
-
             <p style={{
               marginBottom:'14px'
             }}>
@@ -1822,13 +1621,7 @@ export default function RoulettePlay({ players, mode, onBack }) {
             }}>
 
               {activePlayers
-                .filter(player =>
-                  player.id !== winner.id &&
-                  (
-                    mode !== 'teams' ||
-                    player.team !== winner.team
-                  )
-                )
+                .filter(player => player.id !== winner.id)
                 .map(player => (
                   <button
                     key={player.id}
@@ -1900,13 +1693,7 @@ export default function RoulettePlay({ players, mode, onBack }) {
                   overflowY:'auto'
                 }}>
 
-                  {eliminated
-                    .filter(player =>
-                      mode !== 'teams' ||
-                      !winner ||
-                      player.team === winner.team
-                    )
-                    .map(player => (
+                  {eliminated.map(player => (
                     <div
                       key={player.id}
                       style={{
@@ -1961,9 +1748,7 @@ export default function RoulettePlay({ players, mode, onBack }) {
               color:'#8b978b',
               fontSize:'11px'
             }}>
-              {mode === 'teams'
-                ? `${winner.name} يختار لاعبًا من الفريق الخصم`
-                : `${winner.name} يكتب الرقم في الشات، أو المنظّم يختار اللاعب من القائمة`}
+              {winner.name} يكتب الرقم في الشات، أو المنظّم يختار اللاعب من القائمة
             </div>
 
           </div>

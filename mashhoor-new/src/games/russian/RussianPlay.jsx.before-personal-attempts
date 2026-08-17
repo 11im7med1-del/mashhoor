@@ -1,0 +1,1419 @@
+import { useEffect, useState } from 'react'
+
+const COLORS = [
+  '#9eff28','#24d1ff','#ffb020','#ff5f75',
+  '#a978ff','#35e0a1','#ff7a2f','#4d8dff',
+  '#e8ff52','#ff5cc8','#72e6ff','#b6ff66',
+  '#ffcc4d','#9b7cff','#45d6b5','#ff8f70'
+]
+
+function createPlayers(players) {
+  return players.slice(0, 30).map((name, index) => ({
+    id: `${index}-${name}`,
+    name,
+    number: index + 1,
+    color: COLORS[index % COLORS.length]
+  }))
+}
+
+function normalizeName(value = '') {
+  return String(value).trim().toLowerCase()
+}
+
+function normalizeDigits(value = '') {
+  const arabic = '٠١٢٣٤٥٦٧٨٩'
+
+  return String(value).replace(/[٠-٩]/g, digit =>
+    arabic.indexOf(digit)
+  )
+}
+
+export default function RussianPlay({ players, onBack }) {
+  const [activePlayers, setActivePlayers] = useState(
+    () => createPlayers(players)
+  )
+
+  // roulette -> choose -> gun
+  const [screen, setScreen] = useState('roulette')
+
+  const [rotation, setRotation] = useState(0)
+  const [spinning, setSpinning] = useState(false)
+
+  // الشخص الذي اختارته العجلة = صاحب القرار
+  const [chooser, setChooser] = useState(null)
+
+  // الشخص الذي سيتم إطلاق المحاولة عليه
+  const [target, setTarget] = useState(null)
+
+  // مكان الطلقة من 6
+  const [loadedChamber, setLoadedChamber] = useState(
+    () => Math.floor(Math.random() * 6)
+  )
+
+  // رقم المحاولة الحالية: 0 إلى 5
+  const [attemptIndex, setAttemptIndex] = useState(0)
+
+  const [gunState, setGunState] = useState('waiting')
+  const [gunLocked, setGunLocked] = useState(false)
+
+  const champion =
+    activePlayers.length === 1
+      ? activePlayers[0]
+      : null
+
+  const part =
+    activePlayers.length
+      ? 360 / activePlayers.length
+      : 360
+
+  const wheelBackground =
+    activePlayers.length
+      ? `conic-gradient(${activePlayers.map((player, index) => {
+          const start = index * part
+          const end = (index + 1) * part
+
+          return `${player.color} ${start}deg ${end}deg`
+        }).join(',')})`
+      : '#111'
+
+  function clickSound() {
+    try {
+      const AudioContext =
+        window.AudioContext || window.webkitAudioContext
+
+      const ctx = new AudioContext()
+      const osc = ctx.createOscillator()
+      const gain = ctx.createGain()
+
+      osc.type = 'square'
+      osc.frequency.setValueAtTime(135, ctx.currentTime)
+
+      gain.gain.setValueAtTime(.07, ctx.currentTime)
+      gain.gain.exponentialRampToValueAtTime(
+        .001,
+        ctx.currentTime + .12
+      )
+
+      osc.connect(gain)
+      gain.connect(ctx.destination)
+
+      osc.start()
+      osc.stop(ctx.currentTime + .12)
+
+      setTimeout(() => ctx.close(), 250)
+    } catch {}
+  }
+
+  function bangSound() {
+    try {
+      const AudioContext =
+        window.AudioContext || window.webkitAudioContext
+
+      const ctx = new AudioContext()
+      const length = ctx.sampleRate * .45
+
+      const buffer =
+        ctx.createBuffer(1, length, ctx.sampleRate)
+
+      const data =
+        buffer.getChannelData(0)
+
+      for (let i = 0; i < length; i++) {
+        data[i] =
+          (Math.random() * 2 - 1) *
+          Math.pow(1 - i / length, 2)
+      }
+
+      const source =
+        ctx.createBufferSource()
+
+      const gain =
+        ctx.createGain()
+
+      source.buffer = buffer
+
+      gain.gain.setValueAtTime(
+        .25,
+        ctx.currentTime
+      )
+
+      gain.gain.exponentialRampToValueAtTime(
+        .001,
+        ctx.currentTime + .42
+      )
+
+      source.connect(gain)
+      gain.connect(ctx.destination)
+
+      source.start()
+
+      setTimeout(() => ctx.close(), 600)
+    } catch {}
+  }
+
+  function spinWheel() {
+    if (
+      spinning ||
+      screen !== 'roulette' ||
+      activePlayers.length <= 1
+    ) return
+
+    setChooser(null)
+    setTarget(null)
+    setSpinning(true)
+
+    const selectedIndex =
+      Math.floor(
+        Math.random() * activePlayers.length
+      )
+
+    const selected =
+      activePlayers[selectedIndex]
+
+    const segment =
+      360 / activePlayers.length
+
+    const selectedCenter =
+      selectedIndex * segment +
+      segment / 2
+
+    const current =
+      ((rotation % 360) + 360) % 360
+
+    const destination =
+      (360 - selectedCenter) % 360
+
+    const correction =
+      (destination - current + 360) % 360
+
+    const next =
+      rotation +
+      (360 * (7 + Math.floor(Math.random() * 2))) +
+      correction
+
+    setRotation(next)
+
+    setTimeout(() => {
+      setSpinning(false)
+      setChooser(selected)
+
+      setTimeout(() => {
+        setScreen('choose')
+      }, 850)
+
+    }, 3900)
+  }
+
+  function chooseTarget(player) {
+    if (
+      screen !== 'choose' ||
+      !chooser ||
+      player.id === chooser.id
+    ) return
+
+    setTarget(player)
+    setGunState('waiting')
+    setScreen('gun')
+  }
+
+  function fireAutomatically() {
+    if (
+      gunLocked ||
+      !target ||
+      screen !== 'gun'
+    ) return
+
+    setGunLocked(true)
+
+    const fired =
+      attemptIndex === loadedChamber
+
+    if (fired) {
+      setGunState('bang')
+      bangSound()
+
+      setTimeout(() => {
+        setActivePlayers(current =>
+          current.filter(
+            player => player.id !== target.id
+          )
+        )
+
+        // بعد الطلقة نعيد الأسطوانة من جديد
+        setLoadedChamber(
+          Math.floor(Math.random() * 6)
+        )
+
+        setAttemptIndex(0)
+        setChooser(null)
+        setTarget(null)
+        setGunState('waiting')
+        setGunLocked(false)
+        setScreen('roulette')
+      }, 1900)
+
+      return
+    }
+
+    setGunState('safe')
+    clickSound()
+
+    setTimeout(() => {
+      setAttemptIndex(current =>
+        Math.min(current + 1, 5)
+      )
+
+      setChooser(null)
+      setTarget(null)
+      setGunState('waiting')
+      setGunLocked(false)
+      setScreen('roulette')
+    }, 1500)
+  }
+
+  // أول ما تدخل شاشة المسدس يطلق تلقائيًا
+  useEffect(() => {
+    if (
+      screen !== 'gun' ||
+      !target ||
+      gunLocked
+    ) return
+
+    const timer = setTimeout(() => {
+      fireAutomatically()
+    }, 1000)
+
+    return () => clearTimeout(timer)
+  }, [screen, target])
+
+  // استقبال رقم من الشات في شاشة الاختيار
+  useEffect(() => {
+    function receiveMessage(event) {
+      if (
+        screen !== 'choose' ||
+        !chooser
+      ) return
+
+      const detail =
+        event.detail || {}
+
+      const sender =
+        normalizeName(
+          detail.senderName ??
+          detail.sender ??
+          ''
+        )
+
+      const message =
+        normalizeDigits(
+          detail.message ??
+          detail.text ??
+          ''
+        ).trim()
+
+      if (
+        sender !==
+        normalizeName(chooser.name)
+      ) return
+
+      if (!/^\d+$/.test(message)) return
+
+      const number =
+        Number(message)
+
+      const player =
+        activePlayers.find(
+          item =>
+            item.number === number &&
+            item.id !== chooser.id
+        )
+
+      if (player) {
+        chooseTarget(player)
+      }
+    }
+
+    window.addEventListener(
+      'mashhoor-chat-message',
+      receiveMessage
+    )
+
+    window.mashhoorRussianChat =
+      (senderName, message) => {
+        window.dispatchEvent(
+          new CustomEvent(
+            'mashhoor-chat-message',
+            {
+              detail:{
+                senderName,
+                message
+              }
+            }
+          )
+        )
+      }
+
+    return () => {
+      window.removeEventListener(
+        'mashhoor-chat-message',
+        receiveMessage
+      )
+
+      delete window.mashhoorRussianChat
+    }
+  }, [
+    screen,
+    chooser,
+    activePlayers
+  ])
+
+  if (champion) {
+    return (
+      <div className="rr-root rr-winner">
+        <style>{styles}</style>
+
+        <div className="rr-winner-card">
+
+          <div className="rr-trophy">
+            🏆
+          </div>
+
+          <small>
+            الفائز في الروليت الروسي
+          </small>
+
+          <h1>
+            {champion.name}
+          </h1>
+
+          <button
+            className="rr-dark-btn"
+            onClick={onBack}
+          >
+            رجوع للتجهيز
+          </button>
+
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="rr-root">
+      <style>{styles}</style>
+
+      <header className="rr-header">
+
+        <button
+          className="rr-dark-btn"
+          onClick={onBack}
+          disabled={spinning || gunLocked}
+        >
+          رجوع للتجهيز
+        </button>
+
+        <div className="rr-title">
+          <small>MASHHOOR GAMES</small>
+          <h2>الروليت الروسي</h2>
+        </div>
+
+        <div className="rr-count">
+          {activePlayers.length} لاعبين
+        </div>
+
+      </header>
+
+      {/* الشاشة الأولى: العجلة */}
+      {screen === 'roulette' && (
+        <main className="rr-selection">
+
+          <aside className="rr-players">
+
+            <div className="rr-panel-head">
+              <span>اللاعبون</span>
+              <b>{activePlayers.length}</b>
+            </div>
+
+            <div className="rr-player-list">
+
+              {activePlayers.map(player => (
+                <div
+                  className="rr-player-row"
+                  key={player.id}
+                >
+                  <span
+                    className="rr-player-number"
+                    style={{
+                      background:player.color
+                    }}
+                  >
+                    {player.number}
+                  </span>
+
+                  <b>
+                    {player.name}
+                  </b>
+                </div>
+              ))}
+
+            </div>
+
+          </aside>
+
+          <section className="rr-wheel-stage">
+
+            <div className="rr-screen-label">
+              اختيار صاحب الدور
+            </div>
+
+            <div className="rr-wheel-wrap">
+
+              <div className="rr-pointer">
+                ▼
+              </div>
+
+              <div
+                className="rr-wheel"
+                style={{
+                  background:
+                    wheelBackground,
+                  transform:
+                    `translateX(-50%) rotate(${rotation}deg)`,
+                  transition:
+                    spinning
+                      ? 'transform 3.9s cubic-bezier(.10,.72,.10,1)'
+                      : 'none'
+                }}
+              >
+
+                {activePlayers.map(
+                  (player, index) => {
+
+                    const angle =
+                      index * part +
+                      part / 2
+
+                    const radius =
+                      activePlayers.length > 18
+                        ? 182
+                        : 171
+
+                    return (
+                      <div
+                        className="rr-wheel-name"
+                        key={player.id}
+                        style={{
+                          transform:
+                            `rotate(${angle}deg) translateY(-${radius}px) rotate(${-angle}deg)`
+                        }}
+                      >
+                        <b style={{
+                          fontSize:
+                            activePlayers.length > 20
+                              ? 8
+                              : activePlayers.length > 12
+                                ? 10
+                                : 12
+                        }}>
+                          {player.name}
+                        </b>
+                      </div>
+                    )
+                  }
+                )}
+
+                <button
+                  className="rr-wheel-center"
+                  onClick={spinWheel}
+                  disabled={spinning}
+                >
+                  <b>مشهور</b>
+
+                  <small>
+                    {spinning
+                      ? 'تدور...'
+                      : 'لف'}
+                  </small>
+                </button>
+
+              </div>
+
+            </div>
+
+            <div className="rr-selected-name">
+              <small>
+                {spinning
+                  ? 'جاري الاختيار'
+                  : chooser
+                    ? 'صاحب الدور'
+                    : 'اضغط وسط العجلة'}
+              </small>
+
+              <h1>
+                {chooser
+                  ? chooser.name
+                  : '—'}
+              </h1>
+            </div>
+
+          </section>
+
+        </main>
+      )}
+
+      {/* الشاشة الثانية: اختيار الضحية */}
+      {screen === 'choose' && chooser && (
+        <main className="rr-choose-screen">
+
+          <div className="rr-chooser-card">
+
+            <small>
+              صاحب الدور
+            </small>
+
+            <h1>
+              {chooser.name}
+            </h1>
+
+            <p>
+              اختر الشخص الذي ستُجرى عليه المحاولة
+            </p>
+
+            <div className="rr-target-grid">
+
+              {activePlayers
+                .filter(
+                  player =>
+                    player.id !== chooser.id
+                )
+                .map(player => (
+                  <button
+                    key={player.id}
+                    className="rr-target-card"
+                    onClick={() =>
+                      chooseTarget(player)
+                    }
+                  >
+
+                    <span
+                      className="rr-target-number"
+                      style={{
+                        background:player.color
+                      }}
+                    >
+                      {player.number}
+                    </span>
+
+                    <b>
+                      {player.name}
+                    </b>
+
+                  </button>
+                ))}
+
+            </div>
+
+            <div className="rr-chat-hint">
+              {chooser.name} يختار رقم لاعب
+            </div>
+
+          </div>
+
+        </main>
+      )}
+
+      {/* الشاشة الثالثة: المسدس */}
+      {screen === 'gun' && target && (
+        <main
+          className={
+            `rr-gun-screen ${
+              gunState === 'bang'
+                ? 'is-bang'
+                : gunState === 'safe'
+                  ? 'is-safe'
+                  : ''
+            }`
+          }
+        >
+
+          <div className="rr-gun-person">
+
+            <small>
+              المحاولة على
+            </small>
+
+            <h1>
+              {target.name}
+            </h1>
+
+          </div>
+
+          <div className="rr-gun-stage">
+
+            <div className="rr-revolver">
+
+              <div className="rr-barrel" />
+              <div className="rr-barrel-tip" />
+
+              <div className="rr-body">
+
+                <div className="rr-cylinder">
+                  {[0,1,2,3,4,5].map(i => (
+                    <span key={i} />
+                  ))}
+                </div>
+
+              </div>
+
+              <div className="rr-trigger-ring">
+                <div className="rr-trigger" />
+              </div>
+
+              <div className="rr-grip" />
+
+            </div>
+
+          </div>
+
+          {/* المحاولات الست */}
+          <div className="rr-attempts">
+
+            <div className="rr-attempt-title">
+              المحاولات
+            </div>
+
+            <div className="rr-attempt-row">
+
+              {[0,1,2,3,4,5].map(i => (
+                <div
+                  key={i}
+                  className={
+                    `rr-attempt-dot ${
+                      i < attemptIndex
+                        ? 'done'
+                        : i === attemptIndex
+                          ? gunState === 'bang'
+                            ? 'bang'
+                            : 'current'
+                          : ''
+                    }`
+                  }
+                >
+                  {i + 1}
+                </div>
+              ))}
+
+            </div>
+
+          </div>
+
+          <div className="rr-gun-result">
+
+            {gunState === 'waiting' && (
+              <span className="rr-loading">
+                ●
+              </span>
+            )}
+
+            {gunState === 'safe' && (
+              <h2 className="rr-safe-text">
+                نجا
+              </h2>
+            )}
+
+            {gunState === 'bang' && (
+              <h2 className="rr-bang-text">
+                💥 خرج من اللعبة
+              </h2>
+            )}
+
+          </div>
+
+        </main>
+      )}
+
+    </div>
+  )
+}
+
+const styles = `
+  .rr-root{
+    min-height:100vh;
+    box-sizing:border-box;
+    direction:rtl;
+    color:#fff;
+    padding:20px;
+    background:
+      radial-gradient(circle at 70% 0,rgba(158,255,40,.07),transparent 30%),
+      #050705;
+  }
+
+  .rr-root *{
+    box-sizing:border-box;
+  }
+
+  .rr-header{
+    max-width:1250px;
+    min-height:65px;
+    margin:0 auto 20px;
+    padding-bottom:14px;
+    border-bottom:1px solid #1c241c;
+    display:grid;
+    grid-template-columns:1fr auto 1fr;
+    align-items:center;
+  }
+
+  .rr-title{
+    text-align:center;
+  }
+
+  .rr-title small{
+    display:block;
+    color:#687469;
+    font-size:8px;
+    letter-spacing:3px;
+  }
+
+  .rr-title h2{
+    margin:4px 0 0;
+  }
+
+  .rr-count{
+    justify-self:end;
+    color:#9eff28;
+    font-size:12px;
+  }
+
+  .rr-dark-btn{
+    justify-self:start;
+    border:1px solid #293229;
+    background:#0a0e0a;
+    color:#fff;
+    border-radius:10px;
+    padding:10px 15px;
+    font-family:inherit;
+    cursor:pointer;
+  }
+
+  /* ==============
+     العجلة
+  ============== */
+
+  .rr-selection{
+    max-width:1200px;
+    margin:auto;
+    display:grid;
+    grid-template-columns:290px 1fr;
+    gap:35px;
+    align-items:center;
+  }
+
+  .rr-players{
+    padding:16px;
+    border:1px solid #202820;
+    border-radius:16px;
+    background:#090d09;
+  }
+
+  .rr-panel-head{
+    display:flex;
+    justify-content:space-between;
+    margin-bottom:12px;
+    color:#9eff28;
+    font-size:12px;
+  }
+
+  .rr-player-list{
+    display:grid;
+    gap:6px;
+    max-height:520px;
+    overflow:auto;
+  }
+
+  .rr-player-row{
+    min-height:39px;
+    padding:6px 8px;
+    border:1px solid #202720;
+    border-radius:9px;
+    background:#070a07;
+    display:flex;
+    align-items:center;
+    gap:9px;
+  }
+
+  .rr-player-row b{
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+    font-size:12px;
+  }
+
+  .rr-player-number{
+    width:25px;
+    height:25px;
+    border-radius:7px;
+    flex:0 0 25px;
+    display:grid;
+    place-items:center;
+    color:#061006;
+    font-size:9px;
+    font-weight:1000;
+  }
+
+  .rr-wheel-stage{
+    text-align:center;
+  }
+
+  .rr-screen-label{
+    color:#748075;
+    font-size:10px;
+  }
+
+  .rr-wheel-wrap{
+    position:relative;
+    width:500px;
+    height:500px;
+    max-width:100%;
+    margin:auto;
+  }
+
+  .rr-pointer{
+    position:absolute;
+    z-index:30;
+    top:0;
+    left:50%;
+    transform:translateX(-50%);
+    font-size:44px;
+    filter:drop-shadow(0 4px 6px #000);
+  }
+
+  .rr-wheel{
+    position:absolute;
+    top:38px;
+    left:50%;
+    width:445px;
+    height:445px;
+    border-radius:50%;
+    border:8px solid #121912;
+    box-shadow:
+      0 0 0 3px #263026,
+      0 0 70px rgba(158,255,40,.1);
+    overflow:hidden;
+  }
+
+  .rr-wheel-name{
+    position:absolute;
+    top:50%;
+    left:50%;
+    width:145px;
+    height:24px;
+    margin-left:-72.5px;
+    margin-top:-12px;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    pointer-events:none;
+  }
+
+  .rr-wheel-name b{
+    max-width:130px;
+    overflow:hidden;
+    white-space:nowrap;
+    text-overflow:ellipsis;
+    color:#071007;
+    font-weight:1000;
+  }
+
+  .rr-wheel-center{
+    position:absolute;
+    z-index:20;
+    width:112px;
+    height:112px;
+    top:50%;
+    left:50%;
+    transform:translate(-50%,-50%);
+    border:6px solid #1a241a;
+    border-radius:50%;
+    background:#080d08;
+    color:#fff;
+    cursor:pointer;
+    font-family:inherit;
+    box-shadow:0 6px 25px rgba(0,0,0,.6);
+  }
+
+  .rr-wheel-center b{
+    display:block;
+    font-size:21px;
+  }
+
+  .rr-wheel-center small{
+    display:block;
+    margin-top:4px;
+    color:#9eff28;
+    font-size:8px;
+  }
+
+  .rr-selected-name{
+    min-height:80px;
+  }
+
+  .rr-selected-name small{
+    color:#697569;
+  }
+
+  .rr-selected-name h1{
+    margin:4px 0;
+    color:#9eff28;
+    font-size:36px;
+  }
+
+  /* ==============
+     شاشة الاختيار
+  ============== */
+
+  .rr-choose-screen{
+    min-height:calc(100vh - 110px);
+    display:grid;
+    place-items:center;
+  }
+
+  .rr-chooser-card{
+    width:min(720px,95vw);
+    text-align:center;
+    padding:28px;
+    border:1px solid #243024;
+    border-radius:22px;
+    background:
+      radial-gradient(circle at 50% 0,rgba(158,255,40,.08),transparent 35%),
+      #080d08;
+    box-shadow:0 30px 90px rgba(0,0,0,.45);
+  }
+
+  .rr-chooser-card > small{
+    color:#727f72;
+    font-size:10px;
+  }
+
+  .rr-chooser-card > h1{
+    margin:5px 0 4px;
+    color:#9eff28;
+    font-size:48px;
+  }
+
+  .rr-chooser-card > p{
+    margin:0 0 20px;
+    color:#7b877b;
+    font-size:12px;
+  }
+
+  .rr-target-grid{
+    display:grid;
+    grid-template-columns:repeat(3,minmax(0,1fr));
+    gap:8px;
+    max-height:390px;
+    overflow:auto;
+  }
+
+  .rr-target-card{
+    min-height:58px;
+    display:flex;
+    align-items:center;
+    gap:9px;
+    padding:8px 10px;
+    border:1px solid #273027;
+    border-radius:11px;
+    background:#080b08;
+    color:#fff;
+    cursor:pointer;
+    font-family:inherit;
+    transition:.15s;
+  }
+
+  .rr-target-card:hover{
+    border-color:#566d56;
+    transform:translateY(-1px);
+  }
+
+  .rr-target-card b{
+    overflow:hidden;
+    white-space:nowrap;
+    text-overflow:ellipsis;
+  }
+
+  .rr-target-number{
+    width:29px;
+    height:29px;
+    flex:0 0 29px;
+    border-radius:8px;
+    display:grid;
+    place-items:center;
+    color:#071007;
+    font-size:10px;
+    font-weight:1000;
+  }
+
+  .rr-chat-hint{
+    margin-top:16px;
+    padding-top:13px;
+    border-top:1px solid #202820;
+    color:#7b887b;
+    font-size:11px;
+  }
+
+  /* ==============
+     شاشة المسدس
+  ============== */
+
+  .rr-gun-screen{
+    min-height:calc(100vh - 110px);
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    overflow:hidden;
+  }
+
+  .rr-gun-person{
+    position:relative;
+    z-index:5;
+    text-align:center;
+    margin-bottom:8px;
+  }
+
+  .rr-gun-person small{
+    color:#6f7b70;
+    font-size:11px;
+  }
+
+  .rr-gun-person h1{
+    margin:4px 0;
+    color:#9eff28;
+    font-size:clamp(42px,7vw,68px);
+  }
+
+  .rr-gun-stage{
+    width:540px;
+    height:270px;
+    max-width:95vw;
+    position:relative;
+  }
+
+  .rr-revolver{
+    position:absolute;
+    width:470px;
+    height:245px;
+    left:50%;
+    top:50%;
+    transform:translate(-50%,-50%);
+  }
+
+  .rr-barrel{
+    position:absolute;
+    z-index:4;
+    width:235px;
+    height:52px;
+    left:15px;
+    top:55px;
+    border:4px solid #333c34;
+    border-radius:14px 5px 5px 14px;
+    background:
+      linear-gradient(180deg,#293029,#111611);
+    box-shadow:
+      inset 0 4px rgba(255,255,255,.035),
+      0 12px 25px rgba(0,0,0,.45);
+  }
+
+  .rr-barrel::after{
+    content:'';
+    position:absolute;
+    left:18px;
+    right:18px;
+    bottom:9px;
+    height:4px;
+    border-radius:99px;
+    background:#0b0f0b;
+  }
+
+  .rr-barrel-tip{
+    position:absolute;
+    z-index:7;
+    width:23px;
+    height:61px;
+    left:5px;
+    top:51px;
+    border:4px solid #39423a;
+    border-radius:7px;
+    background:#080b08;
+  }
+
+  .rr-body{
+    position:absolute;
+    z-index:6;
+    width:175px;
+    height:118px;
+    left:215px;
+    top:43px;
+    border:4px solid #333d34;
+    border-radius:22px 24px 17px 20px;
+    background:
+      linear-gradient(145deg,#272e27,#0f140f);
+    box-shadow:0 13px 30px rgba(0,0,0,.5);
+  }
+
+  .rr-cylinder{
+    position:absolute;
+    width:94px;
+    height:94px;
+    left:25px;
+    top:8px;
+    border:5px solid #3c463d;
+    border-radius:50%;
+    background:#111711;
+    transform:rotate(15deg);
+  }
+
+  .rr-cylinder span{
+    position:absolute;
+    width:18px;
+    height:18px;
+    border:3px solid #343e35;
+    border-radius:50%;
+    background:#070a07;
+  }
+
+  .rr-cylinder span:nth-child(1){left:35px;top:6px}
+  .rr-cylinder span:nth-child(2){left:60px;top:21px}
+  .rr-cylinder span:nth-child(3){left:60px;top:52px}
+  .rr-cylinder span:nth-child(4){left:35px;top:67px}
+  .rr-cylinder span:nth-child(5){left:10px;top:52px}
+  .rr-cylinder span:nth-child(6){left:10px;top:21px}
+
+  .rr-trigger-ring{
+    position:absolute;
+    z-index:8;
+    width:75px;
+    height:57px;
+    left:292px;
+    top:142px;
+    border:7px solid #293229;
+    border-radius:10px 10px 45px 45px;
+  }
+
+  .rr-trigger{
+    position:absolute;
+    width:9px;
+    height:32px;
+    left:22px;
+    top:-4px;
+    border-radius:8px;
+    background:#9eff28;
+    transform:rotate(-17deg);
+  }
+
+  .rr-grip{
+    position:absolute;
+    z-index:5;
+    width:91px;
+    height:125px;
+    left:354px;
+    top:125px;
+    border:4px solid #2f3830;
+    border-radius:8px 17px 32px 15px;
+    background:
+      repeating-linear-gradient(
+        45deg,
+        #171d17 0 8px,
+        #111611 8px 16px
+      );
+    transform:rotate(-12deg);
+    transform-origin:top;
+  }
+
+  .rr-attempts{
+    text-align:center;
+    margin-top:4px;
+  }
+
+  .rr-attempt-title{
+    color:#6f7a70;
+    font-size:10px;
+    margin-bottom:8px;
+  }
+
+  .rr-attempt-row{
+    display:flex;
+    justify-content:center;
+    gap:9px;
+  }
+
+  .rr-attempt-dot{
+    width:35px;
+    height:35px;
+    display:grid;
+    place-items:center;
+    border:1px solid #303a31;
+    border-radius:10px;
+    background:#0a0e0a;
+    color:#566057;
+    font-size:11px;
+    font-weight:900;
+    transition:.2s;
+  }
+
+  .rr-attempt-dot.done{
+    border-color:#39523b;
+    color:#84a187;
+    background:#101710;
+  }
+
+  .rr-attempt-dot.current{
+    border-color:#9eff28;
+    color:#9eff28;
+    box-shadow:0 0 18px rgba(158,255,40,.12);
+  }
+
+  .rr-attempt-dot.bang{
+    border-color:#ff4f58;
+    color:#ff626a;
+    background:#1b0d0e;
+  }
+
+  .rr-gun-result{
+    min-height:65px;
+    margin-top:12px;
+    text-align:center;
+  }
+
+  .rr-loading{
+    color:#9eff28;
+    font-size:20px;
+    animation:rrPulse .75s ease infinite;
+  }
+
+  .rr-safe-text{
+    margin:0;
+    color:#9eff28;
+    font-size:34px;
+    animation:rrPop .25s ease;
+  }
+
+  .rr-bang-text{
+    margin:0;
+    color:#ff5a62;
+    font-size:34px;
+    animation:rrPop .25s ease;
+  }
+
+  .is-bang::after{
+    content:'';
+    position:fixed;
+    inset:0;
+    z-index:2;
+    pointer-events:none;
+    background:rgba(255,30,40,.18);
+    animation:rrFlash .4s ease forwards;
+  }
+
+  .is-bang .rr-revolver{
+    animation:rrKick .32s ease;
+  }
+
+  .is-safe .rr-trigger{
+    animation:rrTrigger .25s ease;
+  }
+
+  @keyframes rrPulse{
+    50%{opacity:.2}
+  }
+
+  @keyframes rrPop{
+    from{
+      opacity:0;
+      transform:scale(.75);
+    }
+  }
+
+  @keyframes rrFlash{
+    from{opacity:1}
+    to{opacity:0}
+  }
+
+  @keyframes rrKick{
+    0%{
+      transform:translate(-50%,-50%);
+    }
+    45%{
+      transform:translate(-46%,-57%) rotate(-7deg);
+    }
+    100%{
+      transform:translate(-50%,-50%);
+    }
+  }
+
+  @keyframes rrTrigger{
+    50%{
+      transform:rotate(18deg);
+    }
+  }
+
+  /* الفائز */
+
+  .rr-winner{
+    display:grid;
+    place-items:center;
+  }
+
+  .rr-winner-card{
+    width:min(600px,94vw);
+    text-align:center;
+    padding:45px;
+    border:1px solid rgba(158,255,40,.3);
+    border-radius:24px;
+    background:#080d08;
+    box-shadow:0 30px 90px #000;
+  }
+
+  .rr-trophy{
+    font-size:65px;
+  }
+
+  .rr-winner-card small{
+    color:#768276;
+  }
+
+  .rr-winner-card h1{
+    margin:8px 0 30px;
+    color:#9eff28;
+    font-size:50px;
+  }
+
+  @media(max-width:850px){
+    .rr-selection{
+      grid-template-columns:1fr;
+    }
+
+    .rr-players{
+      order:2;
+    }
+
+    .rr-player-list{
+      max-height:200px;
+    }
+  }
+
+  @media(max-width:650px){
+    .rr-target-grid{
+      grid-template-columns:
+        repeat(2,minmax(0,1fr));
+    }
+
+    .rr-gun-stage{
+      height:230px;
+    }
+
+    .rr-revolver{
+      transform:
+        translate(-50%,-50%) scale(.75);
+    }
+  }
+`

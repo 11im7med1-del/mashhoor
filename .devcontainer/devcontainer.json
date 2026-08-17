@@ -1,0 +1,11 @@
+{
+  "name": "Mashhoor",
+  "forwardPorts": [5174],
+  "portsAttributes": {
+    "5174": {
+      "label": "Mashhoor",
+      "onAutoForward": "silent"
+    }
+  },
+  "postStartCommand": "nohup sh -c 'cd /workspaces/mashhoor/mashhoor-new && npm run dev -- --host 0.0.0.0 --port 5174' >/tmp/mashhoor-vite.log 2>&1 &"
+}

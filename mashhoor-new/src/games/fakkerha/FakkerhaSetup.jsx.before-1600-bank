@@ -1,6 +1,5 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useMemo, useState } from 'react'
 import DATA from './fakkerhaData'
-import { FAKKERHA_BANK } from './fakkerhaBank'
 import fakkerhaCategoriesImage from '../../assets/fakkerha-categories-correct.png'
 
 const POINTS = [100, 200, 300, 400, 500]
@@ -23,8 +22,6 @@ export default function FakkerhaSetup({ onBack }) {
   const [activeQuestion, setActiveQuestion] = useState(null)
   const [showAnswer, setShowAnswer] = useState(false)
   const [stealMode, setStealMode] = useState(false)
-  const [timer, setTimer] = useState(0)
-  const hostWindowRef = useRef(null)
 
   const categories = DATA.categories || []
 
@@ -50,57 +47,13 @@ export default function FakkerhaSetup({ onBack }) {
   }
 
   function getQuestion(categoryId, points) {
-    let list = (FAKKERHA_BANK?.[categoryId] || [])
-      .filter(question =>
-        Number(question.points) === Number(points)
-      )
+    const list = DATA.questions?.[categoryId] || []
 
-    if (categoryId === 'islam') {
-      list = list.filter(question => {
-        const source = String(question.source || '')
-        return (
-          source.includes('صحيح البخاري') ||
-          source.includes('صحيح مسلم')
-        )
-      })
-    }
-
-    if (!list.length) return null
-
-    const storageKey =
-      `mashhoor_fakkerha_used_${categoryId}_${points}`
-
-    let history = []
-
-    try {
-      history =
-        JSON.parse(localStorage.getItem(storageKey) || '[]')
-    } catch {
-      history = []
-    }
-
-    let available = list.filter(
-      question => !history.includes(question.q)
+    return (
+      list.find(question => Number(question.points) === Number(points)) ||
+      list[POINTS.indexOf(points)] ||
+      null
     )
-
-    if (!available.length) {
-      history = []
-      available = list
-    }
-
-    const question =
-      available[Math.floor(Math.random() * available.length)]
-
-    history.push(question.q)
-
-    try {
-      localStorage.setItem(
-        storageKey,
-        JSON.stringify(history)
-      )
-    } catch {}
-
-    return question
   }
 
   function openQuestion(categoryId, points) {
@@ -127,7 +80,6 @@ export default function FakkerhaSetup({ onBack }) {
 
     setShowAnswer(false)
     setStealMode(false)
-    setTimer(30)
   }
 
   function otherTeam(team) {
@@ -138,7 +90,6 @@ export default function FakkerhaSetup({ onBack }) {
     setActiveQuestion(null)
     setShowAnswer(false)
     setStealMode(false)
-    setTimer(0)
 
     if (nextTeam) {
       setCurrentTeam(nextTeam)
@@ -158,337 +109,20 @@ export default function FakkerhaSetup({ onBack }) {
   }
 
   function wrongAnswer() {
-    if (!activeQuestion || showAnswer) return
+    if (!activeQuestion) return
 
     if (!stealMode) {
       setStealMode(true)
       setCurrentTeam(
         otherTeam(activeQuestion.originalTeam)
       )
-      setTimer(15)
       return
     }
 
-    setTimer(0)
-    setShowAnswer(true)
+    closeQuestion(
+      otherTeam(activeQuestion.originalTeam)
+    )
   }
-
-  useEffect(() => {
-    if (!activeQuestion || showAnswer) return
-
-    if (timer <= 0) {
-      if (!stealMode) {
-        setStealMode(true)
-        setCurrentTeam(
-          otherTeam(activeQuestion.originalTeam)
-        )
-        setTimer(15)
-      } else {
-        setShowAnswer(true)
-      }
-
-      return
-    }
-
-    const id = setTimeout(() => {
-      setTimer(current =>
-        Math.max(0, current - 1)
-      )
-    }, 1000)
-
-    return () => clearTimeout(id)
-  }, [
-    timer,
-    activeQuestion,
-    stealMode,
-    showAnswer
-  ])
-
-  function hostEscape(value) {
-    return String(value ?? '')
-      .replaceAll('&', '&amp;')
-      .replaceAll('<', '&lt;')
-      .replaceAll('>', '&gt;')
-      .replaceAll('"', '&quot;')
-      .replaceAll("'", '&#039;')
-  }
-
-  function renderHostPanel() {
-    const w = hostWindowRef.current
-
-    if (!w || w.closed) return
-
-    if (!activeQuestion) {
-      w.document.open()
-      w.document.write(`
-        <!doctype html>
-        <html dir="rtl">
-          <head>
-            <meta charset="utf-8">
-            <title>لوحة منظم فكّرها</title>
-          </head>
-          <body style="
-            margin:0;
-            min-height:100vh;
-            display:grid;
-            place-items:center;
-            background:#17120e;
-            color:#f2e6d5;
-            font-family:Arial,sans-serif;
-            text-align:center;
-          ">
-            <div>
-              <div style="
-                font-size:11px;
-                letter-spacing:3px;
-                color:#9f866e;
-              ">
-                MASHHOOR • HOST
-              </div>
-
-              <h2>لوحة منظم فكّرها</h2>
-              <p style="color:#bda995">
-                بانتظار السؤال التالي...
-              </p>
-            </div>
-          </body>
-        </html>
-      `)
-      w.document.close()
-      return
-    }
-
-    const question =
-      hostEscape(activeQuestion.question.q)
-
-    const answer =
-      hostEscape(activeQuestion.question.a)
-
-    const source =
-      hostEscape(activeQuestion.question.source || '')
-
-    const teamName =
-      currentTeam === 'a' ? teamA : teamB
-
-    const phase =
-      showAnswer
-        ? 'انتهت فرص الإجابة'
-        : stealMode
-          ? 'فرصة السرقة'
-          : 'الإجابة الأولى'
-
-    w.document.open()
-
-    w.document.write(`
-      <!doctype html>
-      <html dir="rtl">
-        <head>
-          <meta charset="utf-8">
-          <title>لوحة منظم فكّرها</title>
-        </head>
-
-        <body style="
-          margin:0;
-          padding:22px;
-          box-sizing:border-box;
-          background:#17120e;
-          color:#f2e6d5;
-          font-family:Arial,sans-serif;
-        ">
-
-          <div style="
-            font-size:11px;
-            color:#9f866e;
-            letter-spacing:3px;
-          ">
-            MASHHOOR • HOST
-          </div>
-
-          <h2 style="margin:6px 0 18px">
-            لوحة المنظم
-          </h2>
-
-          <div style="
-            padding:12px;
-            border-radius:12px;
-            background:#2b211a;
-            margin-bottom:15px;
-            line-height:1.7;
-          ">
-            <b>${hostEscape(phase)}</b>
-            <br>
-            الفريق:
-            <b>${hostEscape(teamName)}</b>
-            <br>
-            الوقت:
-            <b>${timer}</b> ثانية
-          </div>
-
-          <div style="
-            padding:16px;
-            border:1px solid #453629;
-            border-radius:14px;
-            font-size:16px;
-            line-height:1.9;
-          ">
-            ${question}
-          </div>
-
-          <div style="
-            margin-top:16px;
-            padding:18px;
-            border-radius:14px;
-            background:#eee0cd;
-            color:#2d2118;
-          ">
-            <div style="
-              font-size:11px;
-              opacity:.65;
-              margin-bottom:8px;
-            ">
-              الإجابة الصحيحة — لا تظهر للاعبين
-            </div>
-
-            <b style="
-              display:block;
-              font-size:20px;
-              line-height:1.8;
-            ">
-              ${answer}
-            </b>
-
-            ${
-              source
-                ? `
-                  <div style="
-                    margin-top:14px;
-                    padding-top:12px;
-                    border-top:1px solid #c7ae91;
-                    font-size:12px;
-                    line-height:1.7;
-                  ">
-                    المصدر: ${source}
-                  </div>
-                `
-                : ''
-            }
-          </div>
-
-          ${
-            !showAnswer
-              ? `
-                <div style="
-                  display:grid;
-                  grid-template-columns:1fr 1fr;
-                  gap:10px;
-                  margin-top:18px;
-                ">
-                  <button
-                    onclick="window.opener.__mashhoorFakkerhaHostAction('wrong')"
-                    style="
-                      min-height:56px;
-                      border:0;
-                      border-radius:12px;
-                      background:#8b4036;
-                      color:white;
-                      font-size:17px;
-                      font-weight:bold;
-                      cursor:pointer;
-                    "
-                  >
-                    ❌ خطأ
-                  </button>
-
-                  <button
-                    onclick="window.opener.__mashhoorFakkerhaHostAction('correct')"
-                    style="
-                      min-height:56px;
-                      border:0;
-                      border-radius:12px;
-                      background:#3d754c;
-                      color:white;
-                      font-size:17px;
-                      font-weight:bold;
-                      cursor:pointer;
-                    "
-                  >
-                    ✅ إجابة صحيحة
-                  </button>
-                </div>
-              `
-              : `
-                <div style="
-                  margin-top:18px;
-                  padding:13px;
-                  text-align:center;
-                  border-radius:12px;
-                  background:#2b211a;
-                  color:#cdb8a1;
-                ">
-                  انتهت فرص الإجابة.
-                  الإجابة ظاهرة الآن على شاشة اللعبة.
-                </div>
-              `
-          }
-
-        </body>
-      </html>
-    `)
-
-    w.document.close()
-  }
-
-  function openHostPanel() {
-    if (
-      !hostWindowRef.current ||
-      hostWindowRef.current.closed
-    ) {
-      hostWindowRef.current = window.open(
-        '',
-        'mashhoor-fakkerha-host',
-        'width=560,height=720'
-      )
-    }
-
-    renderHostPanel()
-
-    if (hostWindowRef.current) {
-      hostWindowRef.current.focus()
-    }
-  }
-
-  useEffect(() => {
-    window.__mashhoorFakkerhaHostAction = action => {
-      if (action === 'correct') {
-        correctAnswer()
-      }
-
-      if (action === 'wrong') {
-        wrongAnswer()
-      }
-    }
-
-    return () => {
-      delete window.__mashhoorFakkerhaHostAction
-    }
-  }, [
-    activeQuestion,
-    currentTeam,
-    stealMode,
-    showAnswer
-  ])
-
-  useEffect(() => {
-    renderHostPanel()
-  }, [
-    activeQuestion,
-    currentTeam,
-    stealMode,
-    showAnswer,
-    timer,
-    teamA,
-    teamB
-  ])
 
   if (!started) {
     return (
@@ -749,47 +383,13 @@ export default function FakkerhaSetup({ onBack }) {
               {activeQuestion.question.q}
             </div>
 
-            <div
-              style={{
-                margin:'16px auto',
-                width:90,
-                height:90,
-                borderRadius:'50%',
-                display:'grid',
-                placeItems:'center',
-                background: stealMode ? '#8b5b34' : '#5f4631',
-                color:'#fff',
-                fontSize:30,
-                fontWeight:900
-              }}
-            >
-              {showAnswer ? '✓' : timer}
-            </div>
-
             {!showAnswer ? (
-              <div
-                style={{
-                  textAlign:'center',
-                  marginTop:14
-                }}
+              <button
+                className="fk-show-answer"
+                onClick={() => setShowAnswer(true)}
               >
-                <button
-                  className="fk-show-answer"
-                  onClick={openHostPanel}
-                >
-                  فتح لوحة المنظم
-                </button>
-
-                <div
-                  style={{
-                    marginTop:10,
-                    fontSize:12,
-                    opacity:.65
-                  }}
-                >
-                  الإجابة وأزرار صحيحة / خطأ تظهر للمنظم فقط
-                </div>
-              </div>
+                إظهار الإجابة
+              </button>
             ) : (
               <>
                 <div className="fk-answer">
@@ -802,33 +402,23 @@ export default function FakkerhaSetup({ onBack }) {
                   </b>
                 </div>
 
-                {activeQuestion.question.source && (
-                  <div
-                    style={{
-                      marginTop:12,
-                      padding:12,
-                      borderRadius:10,
-                      background:'#e3d3bd',
-                      fontSize:13,
-                      fontWeight:800
-                    }}
-                  >
-                    المصدر: {activeQuestion.question.source}
-                  </div>
-                )}
+                <div className="fk-answer-actions">
 
-                <button
-                  className="fk-show-answer"
-                  onClick={() =>
-                    closeQuestion(
-                      otherTeam(
-                        activeQuestion.originalTeam
-                      )
-                    )
-                  }
-                >
-                  متابعة
-                </button>
+                  <button
+                    className="fk-wrong"
+                    onClick={wrongAnswer}
+                  >
+                    خطأ
+                  </button>
+
+                  <button
+                    className="fk-correct"
+                    onClick={correctAnswer}
+                  >
+                    إجابة صحيحة
+                  </button>
+
+                </div>
               </>
             )}
 

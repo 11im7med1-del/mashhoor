@@ -10,6 +10,7 @@ const games = [
   { id:'roulette', num:'01', title:'الروليت', desc:'اختيار، حظ، وقرارات مباشرة', icon:'◉' },
   { id:'countries', num:'02', title:'حرب الدول', desc:'أعلام، استراتيجية، وإقصاءات', icon:'⚑' },
   { id:'russian', num:'03', title:'الروليت الروسي', desc:'جولات سريعة وتوتر حتى النهاية', icon:'◎' },
+  { id:'codenames', num:'04', title:'كود نيمز', desc:'فرق، تلميحات، وتفكير جماعي', icon:'◆' },
   { id:'letters', num:'05', title:'حروف مع محمد', desc:'حروف، أسئلة، ومسارات تنافسية', icon:'⬡' },
   { id:'fakkerha', num:'06', title:'فكّرها', desc:'فئات متنوعة وتحديات معلومات', icon:'✦' },
 ]

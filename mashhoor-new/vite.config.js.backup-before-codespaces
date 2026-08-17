@@ -3,8 +3,5 @@ import react from '@vitejs/plugin-react'
 
 // https://vite.dev/config/
 export default defineConfig({
-  server: {
-    allowedHosts: ['glorious-lamp-r7rj44pqx9r63pqpq-5174.app.github.dev'],
-  },
   plugins: [react()],
 })

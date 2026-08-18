@@ -154,7 +154,7 @@ export default function Home({
     }
 
     window.location.assign(
-      `${API}/auth/kick/start`
+      `https://mashhoor-secure.11im7med1.workers.dev/auth/kick/start`
     )
   }
 

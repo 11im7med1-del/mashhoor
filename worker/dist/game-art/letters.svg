@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 360">
+<rect width="640" height="360" fill="#79573c"/>
+<path d="M0 0h640v60H0zM0 300h640v60H0z" fill="#4fc768"/>
+<path d="M0 60h65v240H0zM575 60h65v240h-65z" fill="#ef883b"/>
+<g font-family="Arial" font-size="34" font-weight="700" text-anchor="middle">
+<g fill="#fff3df" stroke="#5d432f" stroke-width="3">
+<path d="M205 80l35-20 35 20v40l-35 20-35-20Z"/>
+<path d="M275 80l35-20 35 20v40l-35 20-35-20Z"/>
+<path d="M345 80l35-20 35 20v40l-35 20-35-20Z"/>
+<path d="M240 140l35-20 35 20v40l-35 20-35-20Z"/>
+<path d="M310 140l35-20 35 20v40l-35 20-35-20Z"/>
+<path d="M380 140l35-20 35 20v40l-35 20-35-20Z"/>
+<path d="M205 200l35-20 35 20v40l-35 20-35-20Z"/>
+<path d="M275 200l35-20 35 20v40l-35 20-35-20Z"/>
+<path d="M345 200l35-20 35 20v40l-35 20-35-20Z"/>
+</g>
+<text x="240" y="112" fill="#3c2a1d">م</text>
+<text x="310" y="112" fill="#3c2a1d">ح</text>
+<text x="380" y="112" fill="#3c2a1d">ر</text>
+<text x="275" y="172" fill="#3c2a1d">و</text>
+<text x="345" y="172" fill="#3c2a1d">ف</text>
+<text x="415" y="172" fill="#3c2a1d">ا</text>
+</g>
+</svg>

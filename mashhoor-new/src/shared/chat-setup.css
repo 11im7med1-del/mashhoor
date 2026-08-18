@@ -1,0 +1,271 @@
+.chat-entry-panel{
+  width:100%;
+  padding:17px;
+  border:1px solid #263026;
+  border-radius:18px;
+  background:
+    linear-gradient(145deg,#101510,#080b08);
+  box-shadow:
+    0 18px 55px rgba(0,0,0,.18);
+}
+
+.chat-entry-head{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:12px;
+}
+
+.chat-entry-head span{
+  color:#9eff28;
+  font-size:9px;
+  font-weight:900;
+}
+
+.chat-entry-head h3{
+  margin:4px 0 0;
+  font-size:21px;
+}
+
+.kick-state{
+  display:flex;
+  align-items:center;
+  gap:6px;
+  min-height:29px;
+  padding:0 9px;
+  border:1px solid #2a332a;
+  border-radius:999px;
+  color:#7f8a81;
+  background:#090d09;
+  font-size:8px;
+  white-space:nowrap;
+}
+
+.kick-state i{
+  width:6px;
+  height:6px;
+  border-radius:50%;
+  background:#667067;
+}
+
+.kick-state.connected{
+  color:#adff65;
+  border-color:rgba(158,255,40,.22);
+}
+
+.kick-state.connected i{
+  background:#9eff28;
+  box-shadow:0 0 9px #9eff28;
+}
+
+.kick-state.error{
+  color:#ff9b8f;
+}
+
+.join-command{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  margin-top:15px;
+  padding:12px;
+  border:1px solid #242d24;
+  border-radius:12px;
+  background:#080c08;
+}
+
+.join-command small{
+  display:block;
+  color:#657067;
+  font-size:8px;
+}
+
+.join-command strong{
+  display:block;
+  margin-top:3px;
+  color:#9eff28;
+  font-size:19px;
+}
+
+.join-command button{
+  min-height:35px;
+  border-radius:9px;
+  padding:0 11px;
+  cursor:pointer;
+  font:inherit;
+  font-size:9px;
+  font-weight:800;
+}
+
+.join-open{
+  border:1px solid rgba(158,255,40,.25);
+  background:rgba(158,255,40,.07);
+  color:#aaff50;
+}
+
+.join-closed{
+  border:1px solid #42302d;
+  background:#160d0c;
+  color:#ef9185;
+}
+
+.last-chat-join{
+  display:flex;
+  justify-content:space-between;
+  gap:10px;
+  margin-top:8px;
+  padding:8px 10px;
+  border-radius:9px;
+  background:rgba(158,255,40,.04);
+  color:#778179;
+  font-size:8px;
+}
+
+.last-chat-join b{
+  color:#baff70;
+}
+
+.chat-player-count{
+  display:flex;
+  align-items:end;
+  justify-content:space-between;
+  margin-top:14px;
+}
+
+.chat-player-count span{
+  color:#859087;
+  font-size:9px;
+}
+
+.chat-player-count b{
+  color:#fff;
+  font-size:18px;
+}
+
+.chat-player-count small{
+  color:#687269;
+  font-size:9px;
+}
+
+.joined-chat-list{
+  display:grid;
+  gap:6px;
+  max-height:230px;
+  overflow:auto;
+  margin-top:9px;
+  padding-left:2px;
+}
+
+.joined-chat-list p{
+  margin:0;
+  padding:25px 8px;
+  text-align:center;
+  color:#667067;
+  font-size:10px;
+  line-height:1.8;
+}
+
+.joined-chat-list p small{
+  color:#4f5951;
+}
+
+.joined-chat-player{
+  min-height:39px;
+  display:grid;
+  grid-template-columns:26px 1fr 28px;
+  align-items:center;
+  gap:8px;
+  padding:0 8px;
+  border:1px solid #222a22;
+  border-radius:9px;
+  background:#090d09;
+}
+
+.joined-chat-player > span{
+  width:24px;
+  height:24px;
+  display:grid;
+  place-items:center;
+  border-radius:7px;
+  background:rgba(158,255,40,.075);
+  color:#9eff28;
+  font-size:8px;
+}
+
+.joined-chat-player b{
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+  font-size:10px;
+}
+
+.joined-chat-player button{
+  width:27px;
+  height:27px;
+  border:0;
+  border-radius:7px;
+  background:#151a15;
+  color:#7c867e;
+  cursor:pointer;
+}
+
+.manual-entry{
+  margin-top:12px;
+  border-top:1px solid #202720;
+  padding-top:10px;
+}
+
+.manual-entry summary{
+  color:#778179;
+  font-size:9px;
+  cursor:pointer;
+}
+
+.manual-entry textarea{
+  width:100%;
+  min-height:105px;
+  margin-top:9px;
+  resize:vertical;
+  outline:0;
+  border:1px solid #293229;
+  border-radius:10px;
+  background:#070a07;
+  color:#fff;
+  padding:10px;
+  font:inherit;
+  font-size:10px;
+  line-height:1.7;
+}
+
+.chat-panel-actions{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:7px;
+  margin-top:10px;
+}
+
+.chat-panel-actions button{
+  min-height:37px;
+  border:1px solid #283128;
+  border-radius:9px;
+  background:#0b0f0b;
+  color:#aeb7b0;
+  font:inherit;
+  font-size:9px;
+  cursor:pointer;
+}
+
+.chat-panel-actions button:disabled{
+  opacity:.35;
+  cursor:default;
+}
+
+@media(max-width:700px){
+  .chat-entry-head{
+    flex-direction:column;
+  }
+
+  .kick-state{
+    align-self:flex-start;
+  }
+}

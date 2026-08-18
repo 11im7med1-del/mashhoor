@@ -1,0 +1,302 @@
+import { useState } from 'react'
+import './index.css'
+import RoulettePlay from './games/roulette/RoulettePlay'
+import RussianSetup from './games/russian/RussianSetup'
+import CountriesSetup from './games/countries/CountriesSetup'
+import FakkerhaSetup from './games/fakkerha/FakkerhaSetup'
+import LettersSetup from './games/letters/LettersSetup'
+
+const games = [
+  { id:'roulette', num:'01', title:'الروليت', desc:'اختيار، حظ، وقرارات مباشرة', icon:'◉' },
+  { id:'countries', num:'02', title:'حرب الدول', desc:'أعلام، استراتيجية، وإقصاءات', icon:'⚑' },
+  { id:'russian', num:'03', title:'الروليت الروسي', desc:'جولات سريعة وتوتر حتى النهاية', icon:'◎' },
+  { id:'letters', num:'05', title:'حروف مع محمد', desc:'حروف، أسئلة، ومسارات تنافسية', icon:'⬡' },
+  { id:'fakkerha', num:'06', title:'فكّرها', desc:'فئات متنوعة وتحديات معلومات', icon:'✦' },
+]
+
+function RouletteSetup({ onBack }) {
+  const [mode, setMode] = useState('normal')
+  const [names, setNames] = useState('')
+  const [started, setStarted] = useState(false)
+
+  const players = names
+    .split('\n')
+    .map(name => name.trim())
+    .filter(Boolean).slice(0, 30)
+
+  if (started) {
+    return (
+      <RoulettePlay
+        players={players}
+        mode={mode}
+        onBack={() => setStarted(false)}
+      />
+    )
+  }
+
+  return (
+    <div className="game-screen">
+      <header className="game-header">
+        <button className="back-btn" onClick={onBack}>رجوع</button>
+
+        <div className="game-title-box">
+          <small>MASHHOOR GAMES</small>
+          <h2>الروليت</h2>
+        </div>
+
+        <div className="game-header-space" />
+      </header>
+
+      <main className="setup-layout">
+        <aside className="setup-sidebar">
+          <div className="setup-panel">
+            <span className="setup-label">اللاعبون</span>
+            <h3>جهّز الأسماء</h3>
+
+            <textarea
+              value={names}
+              onChange={(e) => setNames(e.target.value)}
+              placeholder={'محمد\nسعود\nفارس'}
+            />
+
+            <div className="players-count">
+              <span>عدد اللاعبين</span>
+              <b>{players.length}</b>
+            </div>
+
+            <div className="players-preview">
+              {players.length === 0 ? (
+                <p>الأسماء تظهر هنا قبل بدء اللعبة</p>
+              ) : (
+                players.map((player, index) => (
+                  <div className="player-row" key={`${player}-${index}`}>
+                    <span>{index + 1}</span>
+                    <b>{player}</b>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        </aside>
+
+        <section className="setup-main">
+          <div className="setup-kicker">إعداد الجولة</div>
+
+          <h1>اختر طريقة اللعب</h1>
+
+          <p className="setup-description">
+            جهّز اللاعبين أولًا، وبعدها اختر طور الروليت المناسب للبث.
+          </p>
+
+          <div className="mode-grid">
+            <button
+              className={`mode-card ${mode === 'normal' ? 'active' : ''}`}
+              onClick={() => setMode('normal')}
+            >
+              <span className="mode-icon">◉</span>
+              <div>
+                <b>عادي</b>
+                <small>كل لاعب يلعب لنفسه</small>
+              </div>
+            </button>
+
+            <button
+              className={`mode-card ${mode === 'teams' ? 'active' : ''}`}
+              onClick={() => setMode('teams')}
+            >
+              <span className="mode-icon">◆</span>
+              <div>
+                <b>فرق</b>
+                <small>تقسيم اللاعبين إلى فريقين</small>
+              </div>
+            </button>
+          </div>
+
+          <div className="selected-mode">
+            <span>الطور المختار</span>
+            <b>{mode === 'normal' ? 'الروليت العادي' : 'روليت الفرق'}</b>
+          </div>
+
+          <button
+            className="big-start-btn"
+            disabled={players.length < 2}
+            onClick={() => setStarted(true)}
+          >
+            ابدأ اللعبة
+            <span>←</span>
+          </button>
+
+          {players.length < 2 && (
+            <small className="start-note">
+              أضف لاعبين اثنين على الأقل لبدء الجولة
+            </small>
+          )}
+        </section>
+      </main>
+    </div>
+  )
+}
+
+export default function App() {
+  const [activeGame, setActiveGame] = useState(null)
+
+  if (activeGame === 'roulette') {
+    return <RouletteSetup onBack={() => setActiveGame(null)} />
+  }
+
+  if (activeGame === 'russian') {
+    return <RussianSetup onBack={() => setActiveGame(null)} />
+  }
+
+  if (activeGame === 'countries') {
+    return <CountriesSetup onBack={() => setActiveGame(null)} />
+  }
+
+  if (activeGame === 'fakkerha') {
+    return <FakkerhaSetup onBack={() => setActiveGame(null)} />
+  }
+
+  if (activeGame === 'letters') {
+    return <LettersSetup onBack={() => setActiveGame(null)} />
+  }
+
+  return (
+    <div className="site">
+      <div className="grid-bg" />
+      <div className="glow glow-one" />
+      <div className="glow glow-two" />
+
+      <header className="header">
+        <div className="logo">
+          <div className="logo-box">م</div>
+          <div>
+            <b>مشهور</b>
+            <span>MASHHOOR</span>
+          </div>
+        </div>
+
+        <nav>
+          <button>الرئيسية</button>
+          <button onClick={() => document.getElementById('games')?.scrollIntoView({behavior:'smooth'})}>
+            الألعاب
+          </button>
+          <button>تواصل</button>
+        </nav>
+
+        <button className="room-btn">إنشاء غرفة</button>
+      </header>
+
+      <main>
+        <section className="hero">
+          <div className="hero-copy">
+            <div className="tag">
+              <i />
+              منصة ألعاب تفاعلية للبث المباشر
+            </div>
+
+            <h1>
+              خلي جمهورك
+              <span>جزء من اللعبة.</span>
+            </h1>
+
+            <p>
+              ألعاب جماعية مصممة للبث، غرف خاصة، تحديات مباشرة،
+              وتجربة عربية مرتبة من أول دخول حتى إعلان الفائز.
+            </p>
+
+            <div className="hero-buttons">
+              <button
+                className="start-btn"
+                onClick={() => document.getElementById('games')?.scrollIntoView({behavior:'smooth'})}
+              >
+                ابدأ اللعب
+                <span>←</span>
+              </button>
+              <button className="outline-btn">كيف يعمل مشهور؟</button>
+            </div>
+
+            <div className="hero-stats">
+              <div><b>6</b><span>ألعاب رئيسية</span></div>
+              <div><b>15+</b><span>لاعب في الغرفة</span></div>
+              <div><b>LIVE</b><span>مصمم للبث</span></div>
+            </div>
+          </div>
+
+          <div className="hero-art">
+            <div className="ring ring-1" />
+            <div className="ring ring-2" />
+            <div className="ring ring-3" />
+
+            <div className="center-logo">
+              <small>MASHHOOR</small>
+              <strong>مشهور</strong>
+              <span>GAMES</span>
+            </div>
+
+            <div className="float-card card-a">
+              <span className="online-dot" />
+              <div>
+                <b>الغرفة متصلة</b>
+                <small>اللاعبون جاهزون</small>
+              </div>
+            </div>
+
+            <div className="float-card card-b">
+              <span>⚡</span>
+              <div>
+                <b>جولة مباشرة</b>
+                <small>تفاعل لحظي</small>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section className="games" id="games">
+          <div className="section-title">
+            <div>
+              <span>اختر لعبتك</span>
+              <h2>ألعاب مشهور</h2>
+            </div>
+            <p>
+              كل لعبة لها شاشة تجهيز مستقلة قبل بدء الجولة،
+              وإعدادات مناسبة لطريقة اللعب.
+            </p>
+          </div>
+
+          <div className="game-grid">
+            {games.map(game => (
+              <article className="game-card" key={game.id}>
+                <div className="card-top">
+                  <span className="number">{game.num}</span>
+                  <div className="game-icon">{game.icon}</div>
+                </div>
+
+                <div className="card-copy">
+                  <h3>{game.title}</h3>
+                  <p>{game.desc}</p>
+                </div>
+
+                <button onClick={() => setActiveGame(game.id)}>
+                  دخول اللعبة
+                  <span>←</span>
+                </button>
+              </article>
+            ))}
+          </div>
+        </section>
+      </main>
+
+      <footer>
+        <div>
+          <b>مشهور</b>
+          <span>ألعاب البث التفاعلية</span>
+        </div>
+
+        <div className="discord">
+          <small>DISCORD</small>
+          <strong>1im7med</strong>
+        </div>
+      </footer>
+    </div>
+  )
+}

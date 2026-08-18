@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import './index.css'
 import './home-premium.css'
-import Home from './home/Home'
 import RoulettePlay from './games/roulette/RoulettePlay'
 import RussianSetup from './games/russian/RussianSetup'
 import CountriesSetup from './games/countries/CountriesSetup'
@@ -177,6 +176,154 @@ export default function App() {
   }
 
   return (
-    <Home onOpenGame={setActiveGame} />
+    <div className="site">
+      <div className="grid-bg" />
+      <div className="glow glow-one" />
+      <div className="glow glow-two" />
+
+      <header className="header">
+        <div className="logo">
+          <div className="logo-box">م</div>
+          <div>
+            <b>مشهور</b>
+            <span>MASHHOOR</span>
+          </div>
+        </div>
+
+        <nav>
+          <button onClick={() => window.scrollTo({top:0, behavior:'smooth'})}>
+            الرئيسية
+          </button>
+          <button onClick={() => document.getElementById('games')?.scrollIntoView({behavior:'smooth'})}>
+            الألعاب
+          </button>
+          <button onClick={() => document.getElementById('contact')?.scrollIntoView({behavior:'smooth'})}>
+            تواصل
+          </button>
+        </nav>
+
+      </header>
+
+      <main>
+        <section className="hero">
+          <div className="hero-copy">
+            <div className="tag">
+              <i />
+              منصة ألعاب تفاعلية للبث المباشر
+            </div>
+
+            <h1>
+              خلي جمهورك
+              <span>جزء من اللعبة.</span>
+            </h1>
+
+            <p>
+              ألعاب جماعية مصممة للبث، تحديات مباشرة، وتحكم واضح للمنظم،
+              وتجربة عربية مرتبة من أول اختيار اللعبة حتى إعلان الفائز.
+            </p>
+
+            <div className="hero-buttons">
+              <button
+                className="start-btn"
+                onClick={() => document.getElementById('games')?.scrollIntoView({behavior:'smooth'})}
+              >
+                ابدأ اللعب
+                <span>←</span>
+              </button>
+              <button
+                className="outline-btn"
+                onClick={() => document.getElementById('contact')?.scrollIntoView({behavior:'smooth'})}
+              >
+                تواصل مع المطور
+              </button>
+            </div>
+
+            <div className="hero-stats">
+              <div><b>5</b><span>ألعاب رئيسية</span></div>
+              <div><b>LIVE</b><span>تحكم مباشر</span></div>
+              <div><b>AR</b><span>تجربة عربية</span></div>
+            </div>
+          </div>
+
+          <div className="hero-art">
+            <div className="ring ring-1" />
+            <div className="ring ring-2" />
+            <div className="ring ring-3" />
+
+            <div className="center-logo">
+              <small>MASHHOOR</small>
+              <strong>مشهور</strong>
+              <span>GAMES</span>
+            </div>
+
+            <div className="float-card card-a">
+              <span className="online-dot" />
+              <div>
+                <b>البث جاهز</b>
+                <small>التحكم بيد المنظم</small>
+              </div>
+            </div>
+
+            <div className="float-card card-b">
+              <span>⚡</span>
+              <div>
+                <b>جولة مباشرة</b>
+                <small>تفاعل لحظي</small>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section className="games" id="games">
+          <div className="section-title">
+            <div>
+              <span>اختر لعبتك</span>
+              <h2>ألعاب مشهور</h2>
+            </div>
+            <p>
+              خمس تجارب مختلفة، لكل واحدة أسلوبها الخاص،
+              وتحكم واضح من التجهيز حتى نهاية الجولة.
+            </p>
+          </div>
+
+          <div className="game-grid">
+            {games.map(game => (
+              <article className="game-card" data-game={game.id} key={game.id}>
+                <div className="card-top">
+                  <span className="number">{game.num}</span>
+                  <div className="game-icon">{game.icon}</div>
+                </div>
+
+                <div className="card-copy">
+                  <h3>{game.title}</h3>
+                  <p>{game.desc}</p>
+                </div>
+
+                <button onClick={() => setActiveGame(game.id)}>
+                  دخول اللعبة
+                  <span>←</span>
+                </button>
+              </article>
+            ))}
+          </div>
+        </section>
+      </main>
+
+      <footer id="contact">
+        <div>
+          <b>مشهور</b>
+          <span>ألعاب البث التفاعلية</span>
+        </div>
+
+        <button
+          className="discord"
+          onClick={() => navigator.clipboard?.writeText('1im7med')}
+          title="نسخ اسم ديسكورد"
+        >
+          <small>DISCORD · اضغط للنسخ</small>
+          <strong>1im7med</strong>
+        </button>
+      </footer>
+    </div>
   )
 }

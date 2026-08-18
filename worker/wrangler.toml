@@ -1,3 +1,15 @@
 name = "mashhoor-api"
 main = "src/index.js"
 compatibility_date = "2026-08-18"
+
+[[kv_namespaces]]
+binding = "MASHHOOR_KV"
+
+[vars]
+ADMIN_PASSWORD_HASH = "22cc43ffbdda876ccfc92ef3d6acb1cdbd7d03b89622973ceb76b9d922618048"
+
+[assets]
+directory = "./dist"
+binding = "ASSETS"
+not_found_handling = "single-page-application"
+run_worker_first = ["/api/*", "/auth/*", "/webhook/*", "/health"]

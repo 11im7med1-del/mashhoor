@@ -1,0 +1,923 @@
+import { useEffect, useMemo, useRef, useState } from 'react'
+import LETTERS_BANK from './lettersBank'
+
+const LETTERS = [
+  'ا','ب','ت','ث','ج',
+  'ح','خ','د','ذ','ر',
+  'ز','س','ش','ص','ض',
+  'ط','ظ','ع','غ','ف',
+  'ق','ك','ل','م','ن',
+  'ه','و','ي'
+]
+
+const QUESTIONS = LETTERS_BANK
+
+function shuffle(items) {
+  const copy = [...items]
+  for (let i = copy.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1))
+    ;[copy[i], copy[j]] = [copy[j], copy[i]]
+  }
+  return copy
+}
+
+function otherTeam(team) {
+  return team === 'green' ? 'orange' : 'green'
+}
+
+export default function LettersPlay({
+  greenName,
+  orangeName,
+  onBack
+}) {
+  const [cells, setCells] = useState(() => {
+    const picked = shuffle(LETTERS).slice(0, 25)
+
+    return picked.map((letter, index) => ({
+      id:index,
+      row:Math.floor(index / 5),
+      col:index % 5,
+      letter,
+      owner:null
+    }))
+  })
+
+  const [turnTeam, setTurnTeam] = useState('green')
+  const [question, setQuestion] = useState(null)
+  const [questionTeam, setQuestionTeam] = useState(null)
+  const [firstWrong, setFirstWrong] = useState(false)
+  const [winner, setWinner] = useState(null)
+  const hostWindowRef = useRef(null)
+
+  const rows = useMemo(() => {
+    return [0,1,2,3,4].map(row =>
+      cells.filter(cell => cell.row === row)
+    )
+  }, [cells])
+
+  function teamName(team) {
+    return team === 'green'
+      ? greenName
+      : orangeName
+  }
+
+  function getCell(row, col, source = cells) {
+    return source.find(
+      cell => cell.row === row && cell.col === col
+    )
+  }
+
+  function neighbors(cell, source) {
+    const dirs = [
+      [-1,0],
+      [1,0],
+      [0,-1],
+      [0,1],
+      [-1,1],
+      [1,-1]
+    ]
+
+    return dirs
+      .map(([dr, dc]) =>
+        getCell(cell.row + dr, cell.col + dc, source)
+      )
+      .filter(Boolean)
+  }
+
+  function hasPath(team, source) {
+    const starts = source.filter(cell => {
+      if (cell.owner !== team) return false
+
+      return team === 'green'
+        ? cell.row === 0
+        : cell.col === 0
+    })
+
+    const visited = new Set()
+    const queue = [...starts]
+
+    while (queue.length) {
+      const cell = queue.shift()
+
+      if (visited.has(cell.id)) continue
+      visited.add(cell.id)
+
+      if (
+        team === 'green'
+          ? cell.row === 4
+          : cell.col === 4
+      ) {
+        return true
+      }
+
+      neighbors(cell, source)
+        .filter(next =>
+          next.owner === team &&
+          !visited.has(next.id)
+        )
+        .forEach(next => queue.push(next))
+    }
+
+    return false
+  }
+
+  function openLetter(cell) {
+    if (
+      winner ||
+      question ||
+      cell.owner
+    ) return
+
+    const list = QUESTIONS[cell.letter] || []
+
+    if (!list.length) return
+
+    const storageKey =
+      `mashhoor_letters_used_${cell.letter}`
+
+    let history = []
+
+    try {
+      history = JSON.parse(
+        localStorage.getItem(storageKey) || '[]'
+      )
+    } catch {
+      history = []
+    }
+
+    let available = list.filter(
+      item => !history.includes(item.q)
+    )
+
+    if (!available.length) {
+      history = []
+      available = list
+    }
+
+    const picked =
+      available[Math.floor(Math.random() * available.length)]
+
+    history.push(picked.q)
+
+    try {
+      localStorage.setItem(
+        storageKey,
+        JSON.stringify(history)
+      )
+    } catch {}
+
+    setQuestion({
+      cell,
+      ...picked
+    })
+
+    setQuestionTeam(turnTeam)
+    setFirstWrong(false)
+  }
+
+  function correct() {
+    if (!question || !questionTeam) return
+
+    const updated = cells.map(cell =>
+      cell.id === question.cell.id
+        ? { ...cell, owner:questionTeam }
+        : cell
+    )
+
+    setCells(updated)
+
+    if (hasPath(questionTeam, updated)) {
+      setWinner(questionTeam)
+    } else {
+      // الفريق الذي أجاب صح يختار الحرف التالي
+      setTurnTeam(questionTeam)
+    }
+
+    setQuestion(null)
+    setQuestionTeam(null)
+    setFirstWrong(false)
+  }
+
+  function wrong() {
+    if (!question || !questionTeam) return
+
+    if (!firstWrong) {
+      // نفس السؤال ينتقل للفريق الثاني
+      setQuestionTeam(otherTeam(questionTeam))
+      setFirstWrong(true)
+      return
+    }
+
+    // الفريقان أخطآ، الخلية تبقى فارغة
+    setTurnTeam(otherTeam(turnTeam))
+    setQuestion(null)
+    setQuestionTeam(null)
+    setFirstWrong(false)
+  }
+
+  function hostEscape(value) {
+    return String(value ?? '')
+      .replaceAll('&', '&amp;')
+      .replaceAll('<', '&lt;')
+      .replaceAll('>', '&gt;')
+      .replaceAll('"', '&quot;')
+      .replaceAll("'", '&#039;')
+  }
+
+  function renderHostPanel() {
+    const w = hostWindowRef.current
+
+    if (!w || w.closed) return
+
+    if (!question) {
+      w.document.open()
+      w.document.write(`
+        <!doctype html>
+        <html dir="rtl">
+        <head>
+          <meta charset="utf-8">
+          <title>منظم حروف مع محمد</title>
+        </head>
+        <body style="
+          margin:0;
+          min-height:100vh;
+          display:grid;
+          place-items:center;
+          background:#17130f;
+          color:#f4eadb;
+          font-family:Arial,sans-serif;
+          text-align:center;
+        ">
+          <div>
+            <small style="color:#9b856e">
+              MASHHOOR • HOST
+            </small>
+            <h2>لوحة المنظم</h2>
+            <p style="color:#bba893">
+              بانتظار اختيار حرف...
+            </p>
+          </div>
+        </body>
+        </html>
+      `)
+      w.document.close()
+      return
+    }
+
+    const q = hostEscape(question.q)
+    const a = hostEscape(question.a)
+    const letter = hostEscape(question.cell.letter)
+    const team = hostEscape(teamName(questionTeam))
+
+    w.document.open()
+
+    w.document.write(`
+      <!doctype html>
+      <html dir="rtl">
+      <head>
+        <meta charset="utf-8">
+        <title>منظم حروف مع محمد</title>
+      </head>
+
+      <body style="
+        margin:0;
+        padding:24px;
+        background:#17130f;
+        color:#f4eadb;
+        font-family:Arial,sans-serif;
+      ">
+
+        <small style="
+          color:#9b856e;
+          letter-spacing:2px;
+        ">
+          MASHHOOR • HOST
+        </small>
+
+        <h2 style="margin:7px 0 18px">
+          لوحة المنظم
+        </h2>
+
+        <div style="
+          padding:12px;
+          border-radius:12px;
+          background:#2c241c;
+          margin-bottom:15px;
+          line-height:1.8;
+        ">
+          الحرف:
+          <b>${letter}</b>
+          <br>
+          الفريق:
+          <b>${team}</b>
+          ${
+            firstWrong
+              ? '<br><b style="color:#e2a269">مرحلة السرقة</b>'
+              : ''
+          }
+        </div>
+
+        <div style="
+          padding:18px;
+          border:1px solid #493c30;
+          border-radius:14px;
+          line-height:1.9;
+          font-size:17px;
+        ">
+          ${q}
+        </div>
+
+        <div style="
+          margin-top:16px;
+          padding:20px;
+          border-radius:14px;
+          background:#eee0cd;
+          color:#2c2118;
+        ">
+          <small>
+            الإجابة الصحيحة — خاصة بالمنظم
+          </small>
+
+          <b style="
+            display:block;
+            margin-top:8px;
+            font-size:25px;
+          ">
+            ${a}
+          </b>
+        </div>
+
+        <div style="
+          display:grid;
+          grid-template-columns:1fr 1fr;
+          gap:10px;
+          margin-top:18px;
+        ">
+          <button
+            onclick="window.opener.__mashhoorLettersAction('wrong')"
+            style="
+              min-height:56px;
+              border:0;
+              border-radius:12px;
+              background:#8d4035;
+              color:white;
+              font-size:17px;
+              font-weight:bold;
+              cursor:pointer;
+            "
+          >
+            ❌ خطأ
+          </button>
+
+          <button
+            onclick="window.opener.__mashhoorLettersAction('correct')"
+            style="
+              min-height:56px;
+              border:0;
+              border-radius:12px;
+              background:#3d754c;
+              color:white;
+              font-size:17px;
+              font-weight:bold;
+              cursor:pointer;
+            "
+          >
+            ✅ إجابة صحيحة
+          </button>
+        </div>
+
+      </body>
+      </html>
+    `)
+
+    w.document.close()
+  }
+
+  function openHostPanel() {
+    if (
+      !hostWindowRef.current ||
+      hostWindowRef.current.closed
+    ) {
+      hostWindowRef.current = window.open(
+        '',
+        'mashhoor-letters-host',
+        'width=560,height=700'
+      )
+    }
+
+    renderHostPanel()
+
+    if (hostWindowRef.current) {
+      hostWindowRef.current.focus()
+    }
+  }
+
+  useEffect(() => {
+    window.__mashhoorLettersAction = action => {
+      if (action === 'correct') {
+        correct()
+      }
+
+      if (action === 'wrong') {
+        wrong()
+      }
+    }
+
+    return () => {
+      delete window.__mashhoorLettersAction
+    }
+  }, [
+    question,
+    questionTeam,
+    firstWrong,
+    cells
+  ])
+
+  useEffect(() => {
+    renderHostPanel()
+  }, [
+    question,
+    questionTeam,
+    firstWrong
+  ])
+
+  function resetGame() {
+    const picked = shuffle(LETTERS).slice(0, 25)
+
+    setCells(
+      picked.map((letter, index) => ({
+        id:index,
+        row:Math.floor(index / 5),
+        col:index % 5,
+        letter,
+        owner:null
+      }))
+    )
+
+    setTurnTeam('green')
+    setQuestion(null)
+    setQuestionTeam(null)
+    setFirstWrong(false)
+    setWinner(null)
+  }
+
+  return (
+    <div className="lm-root">
+      <style>{styles}</style>
+
+      <header className="lm-header">
+        <button onClick={onBack}>
+          رجوع
+        </button>
+
+        <div className="lm-green-name">
+          {greenName}
+        </div>
+
+        <div className="lm-title">
+          <small>حروف مع محمد</small>
+          <b>
+            يختار الآن:
+            {' '}
+            {teamName(turnTeam)}
+          </b>
+        </div>
+
+        <div className="lm-orange-name">
+          {orangeName}
+        </div>
+
+        <div className="lm-header-actions">
+          <button onClick={openHostPanel}>
+            لوحة المنظم
+          </button>
+
+          <button onClick={resetGame}>
+            إعادة
+          </button>
+        </div>
+      </header>
+
+      <main className="lm-game">
+
+        <div className="lm-green-edge lm-green-top">
+          الأخضر
+        </div>
+
+        <div className="lm-board-wrap">
+
+          <div className="lm-orange-edge lm-orange-left">
+            البرتقالي
+          </div>
+
+          <div className="lm-board">
+            {rows.map((row, rowIndex) => (
+              <div
+                className={`lm-row ${rowIndex % 2 ? 'shift' : ''}`}
+                key={rowIndex}
+              >
+                {row.map(cell => (
+                  <button
+                    key={cell.id}
+                    className={`lm-hex ${cell.owner || ''}`}
+                    onClick={() => openLetter(cell)}
+                    disabled={!!cell.owner || !!winner}
+                  >
+                    {cell.letter}
+                  </button>
+                ))}
+              </div>
+            ))}
+          </div>
+
+          <div className="lm-orange-edge lm-orange-right">
+            البرتقالي
+          </div>
+
+        </div>
+
+        <div className="lm-green-edge lm-green-bottom">
+          الأخضر
+        </div>
+
+      </main>
+
+      {question && (
+        <div className="lm-overlay">
+          <div className="lm-question">
+
+            <div className="lm-question-head">
+              <span>
+                الحرف
+                {' '}
+                <b>{question.cell.letter}</b>
+              </span>
+
+              <span className={questionTeam}>
+                دور
+                {' '}
+                {teamName(questionTeam)}
+              </span>
+            </div>
+
+            {firstWrong && (
+              <div className="lm-pass">
+                إجابة خاطئة — نفس السؤال انتقل للفريق الثاني
+              </div>
+            )}
+
+            <h2>
+              {question.q}
+            </h2>
+
+            <div className="lm-player-note">
+              الإجابة والتحكم موجودان في لوحة المنظم
+            </div>
+
+          </div>
+        </div>
+      )}
+
+      {winner && (
+        <div className="lm-overlay">
+          <div className="lm-winner">
+            <small>الفائز</small>
+
+            <h1 className={winner}>
+              {teamName(winner)}
+            </h1>
+
+            <p>
+              أكمل المسار
+              {' '}
+              {winner === 'green'
+                ? 'من الأعلى إلى الأسفل'
+                : 'من اليسار إلى اليمين'}
+            </p>
+
+            <button onClick={resetGame}>
+              جولة جديدة
+            </button>
+          </div>
+        </div>
+      )}
+
+    </div>
+  )
+}
+
+const styles = `
+  .lm-root{
+    min-height:100vh;
+    direction:rtl;
+    background:#e8ddcc;
+    color:#34271d;
+    padding:18px;
+  }
+
+  .lm-root *{
+    box-sizing:border-box;
+  }
+
+  .lm-header{
+    max-width:1200px;
+    margin:auto;
+    min-height:70px;
+    display:grid;
+    grid-template-columns:auto 1fr 1.3fr 1fr auto;
+    align-items:center;
+    gap:14px;
+    border-bottom:1px solid #c8b69d;
+  }
+
+  .lm-header button{
+    border:1px solid #b9a58a;
+    border-radius:9px;
+    background:#f6ecdc;
+    padding:9px 13px;
+    font-family:inherit;
+    cursor:pointer;
+  }
+
+
+  .lm-header-actions{
+    display:flex;
+    gap:7px;
+  }
+
+  .lm-player-note{
+    padding:13px;
+    text-align:center;
+    border-radius:11px;
+    background:#e4d3bc;
+    color:#796550;
+    font-size:12px;
+  }
+
+  .lm-title{
+    text-align:center;
+  }
+
+  .lm-title small{
+    display:block;
+    color:#816c54;
+  }
+
+  .lm-title b{
+    display:block;
+    margin-top:5px;
+  }
+
+  .lm-green-name{
+    color:#327044;
+    font-weight:900;
+  }
+
+  .lm-orange-name{
+    color:#b45c1c;
+    font-weight:900;
+    text-align:left;
+  }
+
+  .lm-game{
+    width:min(760px,95vw);
+    margin:24px auto 0;
+  }
+
+  .lm-green-edge{
+    height:38px;
+    display:grid;
+    place-items:center;
+    border-radius:10px;
+    background:#4d9a62;
+    color:white;
+    font-size:11px;
+    font-weight:900;
+  }
+
+  .lm-board-wrap{
+    display:grid;
+    grid-template-columns:40px 1fr 40px;
+    align-items:center;
+    gap:8px;
+    direction:ltr;
+  }
+
+  .lm-orange-edge{
+    height:430px;
+    display:grid;
+    place-items:center;
+    writing-mode:vertical-rl;
+    border-radius:10px;
+    background:#d27632;
+    color:white;
+    font-size:11px;
+    font-weight:900;
+  }
+
+  .lm-board{
+    min-height:440px;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    gap:-4px;
+    direction:ltr;
+  }
+
+  .lm-row{
+    display:flex;
+    gap:7px;
+    margin-top:-9px;
+  }
+
+  .lm-row.shift{
+    transform:translateX(45px);
+  }
+
+  .lm-hex{
+    width:88px;
+    height:98px;
+    border:0;
+    clip-path:polygon(
+      25% 6%,
+      75% 6%,
+      100% 50%,
+      75% 94%,
+      25% 94%,
+      0 50%
+    );
+    background:#f8efe1;
+    box-shadow:inset 0 0 0 3px #baa88f;
+    color:#3b2b20;
+    font-family:inherit;
+    font-size:28px;
+    font-weight:1000;
+    cursor:pointer;
+    transition:.15s;
+  }
+
+  .lm-hex:hover{
+    transform:scale(1.05);
+  }
+
+  .lm-hex.green{
+    background:#4f9b63;
+    color:white;
+  }
+
+  .lm-hex.orange{
+    background:#d67a34;
+    color:white;
+  }
+
+  .lm-overlay{
+    position:fixed;
+    inset:0;
+    z-index:100;
+    display:grid;
+    place-items:center;
+    padding:20px;
+    background:rgba(45,34,24,.72);
+    backdrop-filter:blur(5px);
+  }
+
+  .lm-question,
+  .lm-winner{
+    width:min(720px,96vw);
+    padding:28px;
+    border:1px solid #c7b398;
+    border-radius:20px;
+    background:#f4eadb;
+    box-shadow:0 30px 90px rgba(0,0,0,.3);
+  }
+
+  .lm-question-head{
+    display:flex;
+    justify-content:space-between;
+    gap:20px;
+    font-size:13px;
+  }
+
+  .lm-question-head .green{
+    color:#327044;
+    font-weight:900;
+  }
+
+  .lm-question-head .orange{
+    color:#b55c1c;
+    font-weight:900;
+  }
+
+  .lm-question h2{
+    min-height:150px;
+    display:grid;
+    place-items:center;
+    text-align:center;
+    line-height:1.8;
+  }
+
+  .lm-answer{
+    padding:13px;
+    text-align:center;
+    border-radius:11px;
+    background:#e4d3bc;
+  }
+
+  .lm-answer small{
+    display:block;
+    color:#89745e;
+  }
+
+  .lm-answer b{
+    display:block;
+    margin-top:4px;
+    font-size:20px;
+  }
+
+  .lm-pass{
+    margin-top:15px;
+    padding:10px;
+    border-radius:10px;
+    background:#ead0ba;
+    text-align:center;
+    font-size:12px;
+  }
+
+  .lm-actions{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:10px;
+    margin-top:14px;
+  }
+
+  .lm-actions button{
+    min-height:50px;
+    border-radius:10px;
+    font-family:inherit;
+    font-weight:900;
+    cursor:pointer;
+  }
+
+  .lm-wrong{
+    border:1px solid #ae7469;
+    background:#e8c7c0;
+    color:#743b33;
+  }
+
+  .lm-correct{
+    border:1px solid #6e916d;
+    background:#d3e2cd;
+    color:#355438;
+  }
+
+  .lm-winner{
+    text-align:center;
+  }
+
+  .lm-winner h1{
+    font-size:42px;
+  }
+
+  .lm-winner h1.green{
+    color:#3b8350;
+  }
+
+  .lm-winner h1.orange{
+    color:#c46c2b;
+  }
+
+  .lm-winner button{
+    min-width:180px;
+    min-height:48px;
+    border:0;
+    border-radius:10px;
+    background:#624a36;
+    color:white;
+    font-family:inherit;
+    font-weight:900;
+    cursor:pointer;
+  }
+
+  @media(max-width:700px){
+    .lm-board{
+      transform:scale(.72);
+      transform-origin:center;
+      width:620px;
+      margin-left:-120px;
+    }
+
+    .lm-board-wrap{
+      overflow:hidden;
+    }
+
+    .lm-header{
+      grid-template-columns:auto 1fr auto;
+    }
+
+    .lm-green-name,
+    .lm-orange-name{
+      display:none;
+    }
+  }
+`

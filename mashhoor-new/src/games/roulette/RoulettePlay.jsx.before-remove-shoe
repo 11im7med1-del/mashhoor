@@ -1026,24 +1026,6 @@ export default function RoulettePlay({ players, mode, onBack }) {
           animation:crownFloat 1.8s ease-in-out infinite;
         }
 
-        /* MASHHOOR GOLD TROPHY */
-        .winner-crown{
-          width:auto!important;
-          height:auto!important;
-          margin:0 auto 10px!important;
-          padding:0!important;
-          background:none!important;
-          border:0!important;
-          box-shadow:none!important;
-          font-size:74px!important;
-          line-height:1!important;
-          filter:
-            drop-shadow(0 8px 15px rgba(0,0,0,.5))
-            drop-shadow(0 0 18px rgba(255,196,45,.28));
-          transform:none!important;
-        }
-
-
         @keyframes crownFloat{
           0%,100%{transform:translateY(0) rotate(-4deg)}
           50%{transform:translateY(-8px) rotate(4deg)}
@@ -1073,6 +1055,23 @@ export default function RoulettePlay({ players, mode, onBack }) {
           height:170px;
           margin:5px auto 4px;
         }
+
+        .winner-shoe{
+          position:absolute;
+          z-index:5;
+          top:0;
+          left:50%;
+          font-size:88px;
+          line-height:1;
+          filter:drop-shadow(0 12px 12px rgba(0,0,0,.65));
+          transform-origin:center bottom;
+          animation:winnerStomp .8s cubic-bezier(.22,.8,.25,1) 4;
+        }
+
+        @keyframes winnerStomp{
+          0%{
+            transform:translate(-50%,-60px) rotate(-22deg) scale(.9);
+          }
 
           58%{
             transform:translate(-50%,35px) rotate(5deg) scale(1.14);
@@ -1228,6 +1227,11 @@ export default function RoulettePlay({ players, mode, onBack }) {
           align-items:center;
           gap:10px;
           animation:kickAcross 1.35s cubic-bezier(.18,.7,.18,1) forwards;
+        }
+
+        .kick-shoe{
+          font-size:90px;
+          filter:drop-shadow(0 10px 16px #000);
         }
 
         .kick-tag{
@@ -1992,7 +1996,9 @@ export default function RoulettePlay({ players, mode, onBack }) {
 
           <div className="winner-card">
 
-            <div className="winner-crown">🏆</div>
+            <div className="winner-crown">
+              🏆
+            </div>
 
             <div className="winner-label">
               الفائز في الروليت
@@ -2003,6 +2009,10 @@ export default function RoulettePlay({ players, mode, onBack }) {
             </div>
 
             <div className="stomp-stage">
+
+              <div className="winner-shoe">
+                👟
+              </div>
 
               <div className="-target">
                 
@@ -2031,6 +2041,10 @@ export default function RoulettePlay({ players, mode, onBack }) {
 
           {effect.type === 'eliminate' && (
             <div className="kick-effect">
+
+              <div className="kick-shoe">
+                👟
+              </div>
 
               <div className="kick-tag">
                 

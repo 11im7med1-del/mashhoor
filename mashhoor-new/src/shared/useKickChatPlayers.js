@@ -6,7 +6,7 @@ import {
 } from 'react'
 
 const API =
-  'https://mashhoor-api.11im7med1.workers.dev'
+  'https://mashhoor-secure.11im7med1.workers.dev'
 
 function parseNames(text, max) {
   const seen = new Set()
